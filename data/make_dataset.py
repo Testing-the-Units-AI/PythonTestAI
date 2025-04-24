@@ -5,6 +5,7 @@ import os
 from shutil import rmtree
 import re
 from pathlib import Path
+from tqdm import tqdm
 
 import requests
 
@@ -13,6 +14,7 @@ parser.add_argument('--repos_dir', default='repos', help='Temporary folder to st
 parser.add_argument('--test_file', help='The test file to provide context for')
 parser.add_argument('--test_method', help='The test method to provide context for')
 parser.add_argument('--output_file', help='The output JSONL file to save the result to')
+parser.add_argument('--max_samples', default=None, help='Max number of repos to collect samples from')
 
 args = parser.parse_args()
 
@@ -277,15 +279,33 @@ def make_samples_repo(repo_dir):
 # For all repos, make data samples and store in the output file
 
 focal_path = "data_focal/data/"
-min_samples = 10
+
+# Compute total number of repos in advance
+total_repos = sum(
+    len([repo for repo in os.listdir(os.path.join(focal_path, user))
+         if os.path.isdir(os.path.join(focal_path, user, repo))])
+    for user in os.listdir(focal_path)
+)
+
+max_samples = total_repos
+if args.max_samples is not None and args.max_samples < total_repos:
+    max_samples = total_repos
+
+# Setup counter and tqdm
 counter = 0
+pbar = tqdm(total=max_samples, desc="Processing repos")
+
 for user in os.listdir(focal_path):
     user_path = os.path.join(focal_path, user)
     for repo in os.listdir(user_path):
-        repo_path = os.path.join(focal_path, user, repo)
-        print(repo_path)
+        repo_path = os.path.join(user_path, repo)
         if os.path.isdir(repo_path):
             make_samples_repo(repo_path)
-        if counter > min_samples:
+            counter += 1
+            pbar.update(1)
+        if counter >= max_samples:
+            pbar.close()
+            print(f"Completed dataset generation. Saved output to {args.output_file}")
             exit(0)
-        counter += 1
+
+pbar.close()
