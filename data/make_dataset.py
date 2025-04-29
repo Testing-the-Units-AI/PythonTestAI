@@ -136,8 +136,6 @@ def make_samples(tests_json_data, focal_data):
 
 def make_samples_repo(repo_dir):
 
-    raise AttributeError
-
     json_files = list(Path(repo_dir).glob('*.focal.json'))
     if not json_files:
         raise FileNotFoundError(f"No .focal.json file found in {repo_dir}")
