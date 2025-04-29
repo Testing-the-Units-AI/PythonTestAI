@@ -136,6 +136,8 @@ def make_samples(tests_json_data, focal_data):
 
 def make_samples_repo(repo_dir):
 
+    raise AttributeError
+
     json_files = list(Path(repo_dir).glob('*.focal.json'))
     if not json_files:
         raise FileNotFoundError(f"No .focal.json file found in {repo_dir}")
@@ -293,19 +295,26 @@ if args.max_repos is not None and args.max_repos < total_repos:
 
 # Setup counter and tqdm
 counter = 0
+really_fucked_repo_counter = 0
 pbar = tqdm(total=max_repos, desc="Processing repos")
-
 for user in os.listdir(focal_path):
     user_path = os.path.join(focal_path, user)
     for repo in os.listdir(user_path):
         repo_path = os.path.join(user_path, repo)
         if os.path.isdir(repo_path):
-            make_samples_repo(repo_path)
+            try:
+                make_samples_repo(repo_path)
+            except Exception as e:
+                really_fucked_repo_counter += 1
+                print(f"❌ Error in repo {repo_path}: {e}")
             counter += 1
             pbar.update(1)
+
         if counter >= max_repos:
             pbar.close()
             print(f"Completed dataset generation. Saved output to {args.output_file}")
+            print(f"Number of repos that didn't complete correctly (no bearing on dataset): {really_fucked_repo_counter}")
             exit(0)
+
 
 pbar.close()
