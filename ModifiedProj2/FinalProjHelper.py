@@ -1,7 +1,15 @@
 import os
 import json
+from typing import List
+
 import torch
 from torch.utils.data import Dataset
+import tokenize
+from io import BytesIO
+import sentencepiece as spm
+
+from PythonTestAI.ModifiedProj2.FinalProject import BOS_TOKEN, BOS_TOKEN_ID, EOS_TOKEN_ID
+
 
 # For tokenizer training
 def merge_text_files(directory, outfile_name):
@@ -28,6 +36,129 @@ def merge_text_files(directory, outfile_name):
                     out.write(cur_data.read())
                     out.write('\n')
 
+class Tokenizer:
+
+    def __init__(self):
+        pass
+
+    def reconstruct_code(self, pieces, num_indent_spaces = 4):
+        indent_level = 0
+        indentation = " " * num_indent_spaces
+
+        out = []
+        current_line = []
+
+        for p in pieces:
+            if p == '\\n':
+                # Flush current line with proper indentation
+                if current_line:
+                    out.append(indentation * indent_level + "".join(current_line).lstrip() + "\n")
+                    current_line = []
+                else:
+                    out.append("\n")
+            elif p == '<INDENT>':
+                indent_level += 1
+            elif p == '<DEDENT>':
+                indent_level = max(0, indent_level - 1)
+            else:
+                if p.startswith('▁'):
+                    current_line.append(' ' + p[1:])
+                else:
+                    current_line.append(p)
+
+        # Catch any remaining line
+        if current_line:
+            out.append(indentation * indent_level + "".join(current_line).lstrip())
+
+        return " ".join(out).lstrip()
+
+    # Useful because tokenizer needs to preserve structure of code!
+    def tokenize_string_with_structure(self, source_code):
+        tokens = tokenize.tokenize(BytesIO(source_code.encode('utf-8')).readline)
+        out = []
+
+        for tok in tokens:
+            if tok.type in (tokenize.ENCODING, tokenize.ENDMARKER):
+                continue
+            elif tok.type == tokenize.NEWLINE:
+                out.append('\\n')
+            elif tok.type == tokenize.INDENT:
+                out.append('<INDENT>')
+            elif tok.type == tokenize.DEDENT:
+                out.append('<DEDENT>')
+            elif tok.type == tokenize.NL:
+                out.append('\\n')  # For blank lines or non-logical newlines
+            else:
+                out.append(tok.string)
+
+        return out
+
+    def train(self, bos_token, eos_token):
+
+        # Make tokenizer
+        all_tokens = []
+
+        max_samples = 10000
+        with open("./data/all.jsonl", mode="r") as data_file:
+            for i, line in enumerate(data_file):
+                if i > max_samples:
+                    break
+                if not line.strip():
+                    continue
+                jsonl = json.loads(line)
+                code = jsonl.get("code", "")
+                test = jsonl.get("test", "")
+
+                code_tokens = self.tokenize_string_with_structure(code)
+                test_tokens = self.tokenize_string_with_structure(test)
+
+                all_tokens.extend(code_tokens + [bos_token] + test_tokens + [eos_token])
+
+        to_bpe = " ".join(all_tokens)
+        with open("token_input.txt", "w") as f:
+            f.write(to_bpe)
+
+        spm.SentencePieceTrainer.Train(
+            input="token_input.txt",
+            model_prefix="bpe_model",
+            vocab_size=7017,  # Set your desired vocab size
+            model_type="bpe",  # You can also try 'unigram', 'char', etc.
+            character_coverage=1.0,  # 1.0 means full coverage
+            user_defined_symbols=['\\n', '<INDENT>', '<DEDENT>', '<BOS>', '<EOS>'],
+            num_threads=8  # 👈 Use your desired number of threads
+        )
+
+    def encode(self, encode_this: str) -> List[int]:
+        sp = spm.SentencePieceProcessor()
+        sp.Load("bpe_model.model")
+
+        # Use structured token stream, not raw code
+        code_tokens_structured = " ".join(self.tokenize_string_with_structure(source_code=encode_this))
+        return sp.EncodeAsIds(code_tokens_structured)
+
+    def encodeAsPieces(self, encode_this: str) -> List[int]:
+        sp = spm.SentencePieceProcessor()
+        sp.Load("bpe_model.model")
+
+        # Use structured token stream, not raw code
+        code_tokens_structured = " ".join(self.tokenize_string_with_structure(source_code=encode_this))
+        print('return (pieces, ids) ')
+        return sp.EncodeAsPieces(code_tokens_structured)
+
+
+    def decode(self, decode_this: List[int]) -> str:
+        sp = spm.SentencePieceProcessor()
+        sp.Load("bpe_model.model")
+
+        pieces = [sp.IdToPiece(id) for id in decode_this]
+
+        reconstructed = self.reconstruct_code(pieces, num_indent_spaces=4)
+        return reconstructed
+
+    def get_piece_size(self):
+        sp = spm.SentencePieceProcessor()
+        sp.Load("bpe_model.model")
+        return sp.GetPieceSize()
 
 class TextDatasetTED(Dataset):
     def __init__(self, filepath, tokenizer, max_src_len=128, max_tgt_len=32):
@@ -73,10 +204,12 @@ class TextDatasetTED(Dataset):
 
         src_tokens, tgt_tokens = self.samples[index]
 
+        tgt_tokens = [BOS_TOKEN_ID] + tgt_tokens + [EOS_TOKEN_ID]
+
         # This is just the input to the encoder to give extra context to our decoder
         encoder_input_ids = torch.tensor(src_tokens, dtype=torch.long)
         # Creating the inputs and labels such that we can train by teacher forcing. Note, the decode index
         # is the prefix (what we are given) and the label is shifted one forward, giving what we want to predict.
-        decoder_input_ids = torch.tensor(tgt_tokens[:-1], dtype=torch.long) #******self.tokenizer.bos_token_id +
-        labels = torch.tensor(tgt_tokens[1:], dtype=torch.long) #******+ [self.tokenizer.eos_token_id]
+        decoder_input_ids = torch.tensor(tgt_tokens[:-1], dtype=torch.long)
+        labels = torch.tensor(tgt_tokens[1:], dtype=torch.long)
         return encoder_input_ids, decoder_input_ids, labels
