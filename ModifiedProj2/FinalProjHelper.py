@@ -78,5 +78,5 @@ class TextDatasetTED(Dataset):
         # Creating the inputs and labels such that we can train by teacher forcing. Note, the decode index
         # is the prefix (what we are given) and the label is shifted one forward, giving what we want to predict.
         decoder_input_ids = torch.tensor(tgt_tokens[:-1], dtype=torch.long) #******self.tokenizer.bos_token_id +
-        labels = torch.tensor(tgt_tokens[1:], dtype=torch.long) #******+ [tokenizer.eos_token_id]
+        labels = torch.tensor(tgt_tokens[1:], dtype=torch.long) #******+ [self.tokenizer.eos_token_id]
         return encoder_input_ids, decoder_input_ids, labels
