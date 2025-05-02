@@ -192,7 +192,7 @@ def train_model(model, device, tokenizer, model_type=""):
                 "optimizer_state": optimizer.state_dict(),
                 "epoch": epoch,
                 "test_loss": avg_test_loss 
-        }, f"checkpoint_epoch_{epoch+1}.pth")
+        }, f"./training_saves/checkpoint_epoch_{epoch+1}.pth")
 
         if (no_improve_epochs >= EARLY_EPOCH_STOP):
             print(f"No improvement in {EARLY_EPOCH_STOP} epochs, stopping...")
