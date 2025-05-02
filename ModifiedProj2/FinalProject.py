@@ -30,8 +30,8 @@ MAX_GEN_SEQ_LEN = 1024
 #MODIFIABLE CONSTANTS FOR MODEL TRAINING START HERE
 DEVICE = "cuda"
 
-BATCH_SIZE = 512
-EPOCHS = 15
+BATCH_SIZE = 128
+EPOCHS = 1
 LEARNING_RATE = .002
 # Dictates creativity of the model, < 1 more deterministic, > 1 more creative/stochastic, 1 is no change from base model.
 TEMPERATURE = .9
@@ -274,8 +274,8 @@ def BLEU(model, tokenizer, test_loader):
                     break
 
                 # For each prediction vector and label vector, decode it and add it to a list for BLEU scoring
-                pred_decode = tokenizer.decode(predicted, out_type=str)
-                reference = tokenizer.decode(target, out_type=str)
+                pred_decode = tokenizer.decode(predicted)
+                reference = tokenizer.decode(target)
 
                 samples_processed += 1
 
