@@ -159,8 +159,8 @@ class Tokenizer:
 
 class TextDatasetTED(Dataset):
     def __init__(self, filepath, tokenizer, max_src_len=128, max_tgt_len=32):
-        """ 
-        
+        """
+
 
         :param filepath: Location of the .jsonl file with prompts and completions
         :param tokenizer: Tokenizer we want to use for the training
@@ -178,8 +178,8 @@ class TextDatasetTED(Dataset):
             # Line by line (with each line being a prompt/completion pair)...
             for line in file:
                 item = json.loads(line)
-                src_tokens = tokenizer.encode(item["prompt"], out_type=int)[:max_src_len]
-                tgt_tokens = tokenizer.encode(item["completion"], out_type=int)[:max_tgt_len]
+                src_tokens = tokenizer.encode(item["code"])[:max_src_len]
+                tgt_tokens = tokenizer.encode(item["test"])[:max_tgt_len]
 
                 # We also don't want lines that are too short and don't provide useful info
                 if len(src_tokens) < 2:
@@ -187,12 +187,12 @@ class TextDatasetTED(Dataset):
                 # Now that our jsonl line is tokenized, record the result
                 # Note that is is a JAGGED 2D array, meaning we will need to add padding later
                 self.samples.append((src_tokens, tgt_tokens))
-    
+
     def __len__(self):
         return len(self.samples)
-    
+
     def __getitem__(self, index):
-        """ 
+        """
         Takes the samples from initialization and modifies them for teacher forcing for the models
 
         :param index: The sample being references
