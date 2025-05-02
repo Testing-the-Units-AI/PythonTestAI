@@ -79,7 +79,7 @@ class TransformerEDLanguageModel(nn.Module):
         self.eval()
 
         # Convert the prompt to tokenized sequence for model comprehension
-        enc_input_ids = tokenizer.encode(prompt, out_type=int)
+        enc_input_ids = tokenizer.encode(prompt)
         enc_input_ids = torch.tensor([enc_input_ids], dtype=torch.long, device=device)
         enc_pad_mask = (enc_input_ids == pad_token_id)  # shape (1, src_len)
 
@@ -113,7 +113,7 @@ class TransformerEDLanguageModel(nn.Module):
 
         # Once we have an eos token or the max length is reached, return the decoded prompt
         gen_ids = generated_ids[1:] if bos_token_id is not None else generated_ids
-        return tokenizer.decode(gen_ids, out_type=str)
+        return tokenizer.decode(gen_ids)
 
 
 
