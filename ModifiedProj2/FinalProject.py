@@ -49,6 +49,7 @@ LEARNING_RATE = .002
 # Dictates creativity of the model, < 1 more deterministic, > 1 more creative/stochastic, 1 is no change from base model.
 TEMPERATURE = .9
 EARLY_EPOCH_STOP = 2
+EPOCHS_PER_SAVE = 2
 EMBED_DIM = 128
 HIDDEN_DIM = 256
 NUM_LAYERS = 4
@@ -197,6 +198,14 @@ def train_model(model, device, tokenizer, model_type=""):
                 no_improve_epochs = 0
             else:
                 no_improve_epochs += 1
+
+        if (epoch) % EPOCHS_PER_SAVE == 0:
+            torch.save({
+                "model_state": model.state_dict(),
+                "optimizer_state": optimizer.state_dict(),
+                "epoch": epoch,
+                "test_loss": avg_test_loss 
+        }, f"./training_saves/checkpoint_epoch_{epoch+1}.pth")
 
         if (no_improve_epochs >= EARLY_EPOCH_STOP):
             print(f"No improvement in {EARLY_EPOCH_STOP} epochs, stopping...")
