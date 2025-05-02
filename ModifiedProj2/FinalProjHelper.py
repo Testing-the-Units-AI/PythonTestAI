@@ -7,6 +7,7 @@ from torch.utils.data import Dataset
 import tokenize
 from io import BytesIO
 import sentencepiece as spm
+from tqdm import tqdm
 
 EOS_TOKEN = "<EOS>"
 BOS_TOKEN = "<BOS>"
@@ -176,7 +177,7 @@ class TextDatasetTED(Dataset):
         # With the provided jsonl files from the handout...
         with open(filepath, "r", encoding="utf-8") as file:
             # Line by line (with each line being a prompt/completion pair)...
-            for line in file:
+            for line in tqdm(file, desc="Tokenizing dataset"):
                 item = json.loads(line)
                 src_tokens = tokenizer.encode(item["code"])[:max_src_len]
                 tgt_tokens = tokenizer.encode(item["test"])[:max_tgt_len]
