@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class TransformerEDLanguageModel(nn.Module):
 
-    def __init__(self, vocab_size, embed_dim=256, enc_num_layers=6, dec_num_layers=6, dropout=0.2, pad_token_id=0, n_heads=8, name="TED Model"):
+    def __init__(self, vocab_size, embed_dim=256, enc_num_layers=6, dec_num_layers=6, dropout=0.2, pad_token_id=0, n_heads=8, seq_len=512, name="TED Model"):
         """ 
         Defines a Encoder-Decoder Transformer model for test use on the Gutenburg project dataset.
         
@@ -13,15 +13,16 @@ class TransformerEDLanguageModel(nn.Module):
         :param dec_num_layers: The number of layers for the decoder.
         :param dropout: Layer dropout rate used to reduce reliance of specific pathways in node structures by zeroing out nodes.
         :param pad_token_id: Padding ID used by the tokenizer. Ensures the embedding layer has a 0 vector for that index.
-        :param name: The name which the prompts and graph refer to this model as.
         :param n_heads: The number of attention heads used for the Transformer block
+        :param seq_len: The maximum sequence length a training sequence can be. Needs to be set for the positional layer to know how many vectors to pre-compute
+        :param name: The name which the prompts and graph refer to this model as.
         """
         super().__init__()
 
         self.name = name
 
         self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=pad_token_id)
-        self.positional_embed = PositionalEncoding(embed_dim, dropout=dropout)
+        self.positional_embed = PositionalEncoding(embed_dim, dropout=dropout, max_len=seq_len)
 
         self.transformer = nn.Transformer(d_model=embed_dim,
                                           nhead=n_heads,
