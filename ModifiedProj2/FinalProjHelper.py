@@ -102,11 +102,11 @@ class Tokenizer:
 
         return out
 
-    def train(self, vocab_size = 7017, sample_limit: int | None = 10000):
+    def train(self, vocab_size = 7017, jsonl_file = "./data/all.jsonl", sample_limit: int | None = 10000):
         # Make tokenizer
         all_tokens = []
 
-        with open("./data/all.jsonl", mode="r") as data_file:
+        with open(jsonl_file, mode="r") as data_file:
             for i, line in enumerate(data_file):
                 if sample_limit and i > sample_limit:
                     break
@@ -122,11 +122,11 @@ class Tokenizer:
                 all_tokens.extend(code_tokens + [BOS_TOKEN] + test_tokens + [EOS_TOKEN])
 
         to_bpe = " ".join(all_tokens)
-        with open("token_input.txt", "w") as f:
+        with open("data/token_input.txt", "w") as f:
             f.write(to_bpe)
 
         spm.SentencePieceTrainer.Train(
-            input="token_input.txt",
+            input="data/token_input.txt",
             model_prefix=self.tokenizer_prefix,
             vocab_size=vocab_size,  # Set your desired vocab size
             model_type="bpe",
