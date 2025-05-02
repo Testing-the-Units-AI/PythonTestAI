@@ -8,40 +8,49 @@ import tokenize
 from io import BytesIO
 import sentencepiece as spm
 
-from PythonTestAI.ModifiedProj2.FinalProject import BOS_TOKEN, BOS_TOKEN_ID, EOS_TOKEN_ID
+EOS_TOKEN = "<EOS>"
+BOS_TOKEN = "<BOS>"
+BOS_TOKEN_ID = 3
+EOS_TOKEN_ID = 4
 
-
-# For tokenizer training
-def merge_text_files(directory, outfile_name):
-    """
-    This function takes all of the raw data and uses it to train the bpe tokenizer such that,
-    when we have our eventual prompts and answers, we can easily convert them into tokenized sequences
-    for training our models and decode them for reading. BPE tokenization allows for the token sequences to be condensed
-    to small sequences of letters or even full words for easier processing and better pattern recognition.
-
-    :param directory: The folder containing all of the raw data.
-    :param outfile_name: The corpus file name to write to
-    """
-    # We want a clean file when we call this function
-    if os.path.exists(outfile_name):
-        os.remove(outfile_name)
-
-    # We will merge all of the text files in the specified directory into one file so it can be used for training the tokenizer
-    with open(outfile_name, 'w', encoding='utf-8') as out:
-        for file in os.listdir(directory):
-            filename = os.fsdecode(file)
-            if filename.endswith('.txt'):
-                file_path = os.path.join(directory, filename)
-                with open(file_path, 'r', encoding='utf-8') as cur_data:
-                    out.write(cur_data.read())
-                    out.write('\n')
+#
+# # For tokenizer training
+# def merge_text_files(directory, outfile_name):
+#     """
+#     This function takes all of the raw data and uses it to train the bpe tokenizer such that,
+#     when we have our eventual prompts and answers, we can easily convert them into tokenized sequences
+#     for training our models and decode them for reading. BPE tokenization allows for the token sequences to be condensed
+#     to small sequences of letters or even full words for easier processing and better pattern recognition.
+#
+#     :param directory: The folder containing all of the raw data.
+#     :param outfile_name: The corpus file name to write to
+#     """
+#
+#
+#     # # We want a clean file when we call this function
+#     # if os.path.exists(outfile_name):
+#     #     os.remove(outfile_name)
+#     #
+#     # # We will merge all of the text files in the specified directory into one file so it can be used for training the tokenizer
+#     # with open(outfile_name, 'w', encoding='utf-8') as out:
+#     #     for file in os.listdir(directory):
+#     #         filename = os.fsdecode(file)
+#     #         if filename.endswith('.txt'):
+#     #             file_path = os.path.join(directory, filename)
+#     #             with open(file_path, 'r', encoding='utf-8') as cur_data:
+#     #                 out.write(cur_data.read())
+#     #                 out.write('\n')
 
 class Tokenizer:
 
-    def __init__(self):
-        pass
+    def __init__(self, tokenizer_prefix):
+        self.tokenizer_prefix = tokenizer_prefix
+        self.sp = spm.SentencePieceProcessor()
 
-    def reconstruct_code(self, pieces, num_indent_spaces = 4):
+    def load(self):
+        self.sp.Load(f"{self.tokenizer_prefix}.model")
+
+    def _reconstruct_code(self, pieces, num_indent_spaces = 4):
         indent_level = 0
         indentation = " " * num_indent_spaces
 
@@ -73,7 +82,7 @@ class Tokenizer:
         return " ".join(out).lstrip()
 
     # Useful because tokenizer needs to preserve structure of code!
-    def tokenize_string_with_structure(self, source_code):
+    def _tokenize_string_with_structure(self, source_code):
         tokens = tokenize.tokenize(BytesIO(source_code.encode('utf-8')).readline)
         out = []
 
@@ -93,15 +102,13 @@ class Tokenizer:
 
         return out
 
-    def train(self, bos_token, eos_token):
-
+    def train(self, vocab_size = 7017, sample_limit: int | None = 10000):
         # Make tokenizer
         all_tokens = []
 
-        max_samples = 10000
         with open("./data/all.jsonl", mode="r") as data_file:
             for i, line in enumerate(data_file):
-                if i > max_samples:
+                if sample_limit and i > sample_limit:
                     break
                 if not line.strip():
                     continue
@@ -109,10 +116,10 @@ class Tokenizer:
                 code = jsonl.get("code", "")
                 test = jsonl.get("test", "")
 
-                code_tokens = self.tokenize_string_with_structure(code)
-                test_tokens = self.tokenize_string_with_structure(test)
+                code_tokens = self._tokenize_string_with_structure(code)
+                test_tokens = self._tokenize_string_with_structure(test)
 
-                all_tokens.extend(code_tokens + [bos_token] + test_tokens + [eos_token])
+                all_tokens.extend(code_tokens + [BOS_TOKEN] + test_tokens + [EOS_TOKEN])
 
         to_bpe = " ".join(all_tokens)
         with open("token_input.txt", "w") as f:
@@ -120,45 +127,35 @@ class Tokenizer:
 
         spm.SentencePieceTrainer.Train(
             input="token_input.txt",
-            model_prefix="bpe_model",
-            vocab_size=7017,  # Set your desired vocab size
-            model_type="bpe",  # You can also try 'unigram', 'char', etc.
-            character_coverage=1.0,  # 1.0 means full coverage
-            user_defined_symbols=['\\n', '<INDENT>', '<DEDENT>', '<BOS>', '<EOS>'],
-            num_threads=8  # 👈 Use your desired number of threads
+            model_prefix=self.tokenizer_prefix,
+            vocab_size=vocab_size,  # Set your desired vocab size
+            model_type="bpe",
+            character_coverage=1.0,
+            user_defined_symbols=['<BOS>', '<EOS>', '<PAD>', '\\n', '<INDENT>', '<DEDENT>'],
+            num_threads=8  # TODO: Make better
         )
 
     def encode(self, encode_this: str) -> List[int]:
-        sp = spm.SentencePieceProcessor()
-        sp.Load("bpe_model.model")
-
         # Use structured token stream, not raw code
-        code_tokens_structured = " ".join(self.tokenize_string_with_structure(source_code=encode_this))
-        return sp.EncodeAsIds(code_tokens_structured)
+        code_tokens_structured = " ".join(self._tokenize_string_with_structure(source_code=encode_this))
+        return self.sp.EncodeAsIds(code_tokens_structured)
 
     def encodeAsPieces(self, encode_this: str) -> List[int]:
-        sp = spm.SentencePieceProcessor()
-        sp.Load("bpe_model.model")
-
-        # Use structured token stream, not raw code
-        code_tokens_structured = " ".join(self.tokenize_string_with_structure(source_code=encode_this))
+                # Use structured token stream, not raw code
+        code_tokens_structured = " ".join(self._tokenize_string_with_structure(source_code=encode_this))
         print('return (pieces, ids) ')
-        return sp.EncodeAsPieces(code_tokens_structured)
+        return self.sp.EncodeAsPieces(code_tokens_structured)
 
 
     def decode(self, decode_this: List[int]) -> str:
-        sp = spm.SentencePieceProcessor()
-        sp.Load("bpe_model.model")
+        pieces = [self.sp.IdToPiece(id) for id in decode_this]
 
-        pieces = [sp.IdToPiece(id) for id in decode_this]
-
-        reconstructed = self.reconstruct_code(pieces, num_indent_spaces=4)
+        reconstructed = self._reconstruct_code(pieces, num_indent_spaces=4)
         return reconstructed
 
     def get_piece_size(self):
-        sp = spm.SentencePieceProcessor()
-        sp.Load("bpe_model.model")
-        return sp.GetPieceSize()
+        self.load()
+        return self.sp.GetPieceSize()
 
 class TextDatasetTED(Dataset):
     def __init__(self, filepath, tokenizer, max_src_len=128, max_tgt_len=32):
