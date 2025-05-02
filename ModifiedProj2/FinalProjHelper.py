@@ -10,8 +10,13 @@ import sentencepiece as spm
 
 EOS_TOKEN = "<EOS>"
 BOS_TOKEN = "<BOS>"
+PYTEST_TOKEN = "<PT>"
+UNITTEST_TOKEN = "<UT>"
 BOS_TOKEN_ID = 3
 EOS_TOKEN_ID = 4
+# PAD_TOKEN_ID = 5
+PYTEST_TOKEN_ID = 6
+UNITTEST_TOKEN_ID = 7
 
 #
 # # For tokenizer training
@@ -115,11 +120,15 @@ class Tokenizer:
                 jsonl = json.loads(line)
                 code = jsonl.get("code", "")
                 test = jsonl.get("test", "")
+                fw = jsonl.get("framework", "")
 
                 code_tokens = self._tokenize_string_with_structure(code)
                 test_tokens = self._tokenize_string_with_structure(test)
 
-                all_tokens.extend(code_tokens + [BOS_TOKEN] + test_tokens + [EOS_TOKEN])
+                # FIXME: Does this work?
+                FW_TOKEN = PYTEST_TOKEN if fw == "pytest" else UNITTEST_TOKEN
+
+                all_tokens.extend(code_tokens + [BOS_TOKEN] + [FW_TOKEN] + test_tokens + [EOS_TOKEN])
 
         to_bpe = " ".join(all_tokens)
         with open("token_input.txt", "w") as f:
@@ -131,7 +140,7 @@ class Tokenizer:
             vocab_size=vocab_size,  # Set your desired vocab size
             model_type="bpe",
             character_coverage=1.0,
-            user_defined_symbols=['<BOS>', '<EOS>', '<PAD>', '\\n', '<INDENT>', '<DEDENT>'],
+            user_defined_symbols=[BOS_TOKEN, EOS_TOKEN, "<PAD>", PYTEST_TOKEN, UNITTEST_TOKEN, '\\n', '<INDENT>', '<DEDENT>'],
             num_threads=8  # TODO: Make better
         )
 
@@ -169,6 +178,7 @@ class TextDatasetTED(Dataset):
         """
 
         self.samples = []
+        self.sample_frameworks = []
         self.tokenizer = tokenizer
         self.max_src_len = max_src_len
         self.max_tgt_len = max_tgt_len
@@ -178,8 +188,9 @@ class TextDatasetTED(Dataset):
             # Line by line (with each line being a prompt/completion pair)...
             for line in file:
                 item = json.loads(line)
-                src_tokens = tokenizer.encode(item["prompt"], out_type=int)[:max_src_len]
-                tgt_tokens = tokenizer.encode(item["completion"], out_type=int)[:max_tgt_len]
+                src_tokens = tokenizer.encode(item["code"])[:max_src_len]
+                tgt_tokens = tokenizer.encode(item["test"])[:max_tgt_len]
+                framework = tokenizer.encode(item["framework"])
 
                 # We also don't want lines that are too short and don't provide useful info
                 if len(src_tokens) < 2:
@@ -187,6 +198,7 @@ class TextDatasetTED(Dataset):
                 # Now that our jsonl line is tokenized, record the result
                 # Note that is is a JAGGED 2D array, meaning we will need to add padding later
                 self.samples.append((src_tokens, tgt_tokens))
+                self.sample_frameworks.append(framework)
     
     def __len__(self):
         return len(self.samples)
@@ -200,8 +212,9 @@ class TextDatasetTED(Dataset):
         """
 
         src_tokens, tgt_tokens = self.samples[index]
+        FRAMEWORK_TOKEN_ID = PYTEST_TOKEN_ID if self.sample_frameworks[index] == "pytest" else UNITTEST_TOKEN_ID
 
-        tgt_tokens = [BOS_TOKEN_ID] + tgt_tokens + [EOS_TOKEN_ID]
+        tgt_tokens = [BOS_TOKEN_ID] + [FRAMEWORK_TOKEN_ID] + tgt_tokens + [EOS_TOKEN_ID]
 
         # This is just the input to the encoder to give extra context to our decoder
         encoder_input_ids = torch.tensor(src_tokens, dtype=torch.long)
