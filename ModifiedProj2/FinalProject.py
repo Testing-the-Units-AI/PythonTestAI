@@ -3,18 +3,31 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_new_tokenizer', type=bool, default=False, help="Needed if no .model file in project root")
 parser.add_argument('--train_new_model', type=bool, default=False)
+parser.add_argument('--framework', help="Do you want to generate pytest or unittest tests?")
+parser.add_argument('--input_code_file', default=False, help="Where do you want to get code to generate tests for?")
+parser.add_argument('--output_test_file', type=bool, default=False, help="Where do you want to output tests?")
 
 args = parser.parse_args()
 
-train_new_tokenizer = args.train_new_tokenizer
-train_new_model = args.train_new_model
+train_new_tokenizer = getattr(args, "train_new_tokenizer", False)
+train_new_model = getattr(args, "train_new_model", False)
+framework = getattr(args, "framework", None)
+input_code_file = getattr(args, "input_code_file", None)
+output_test_file = getattr(args, "output_test_file", None)
 
+print(f"Running script with:")
+print(f"  train_new_tokenizer = {train_new_tokenizer}")
+print(f"  train_new_model     = {train_new_model}")
+print(f"  framework           = {framework}")
+print(f"  input_code_file     = {input_code_file}")
+print(f"  output_test_file    = {output_test_file}")
 
 # CONSTANTS
 
 DATA_DIR = './data/raw' # Where all the raw stories are
-TRAIN_FILE = 'data/dataset.jsonl'
+TRAIN_FILE = 'data/all.jsonl'
 TEST_FILE = 'data/dataset.jsonl'
+TRAIN_TOKENIZER_FILE = 'data/dataset.jsonl'
 CORPUS_FILE = 'corpus.txt' # Where all the raw data will be stored
 MODEL_WEIGHTS_DIR = "final_model_weights.pth"
 
@@ -289,21 +302,24 @@ def BLEU(model, tokenizer, test_loader):
 
 
 def prompt_model(model, tokenizer, name):
-    while (1):
-        print("Prompt " + name + " (type q to quit): ")
-        prompt = input()
-        if prompt.lower() == "q":
-            break
-        else:
-            print(f"Your unit test: " + model.generate(tokenizer,
-                                                       prompt,
-                                                       max_seq_length=MAX_GEN_SEQ_LEN,
-                                                       bos_token_id=BOS_TOKEN_ID,
-                                                       eos_token_id=EOS_TOKEN_ID,
-                                                       pad_token_id=PAD_TOKEN_ID,
-                                                       temperature=TEMPERATURE,
-                                                       device=DEVICE
-                                                       ))
+    with open(input_code_file, "r") as infile:
+        prompt = infile.read().strip()
+
+    generated_test = model.generate(
+        tokenizer,
+        prompt,
+        max_seq_length=MAX_GEN_SEQ_LEN,
+        bos_token_id=BOS_TOKEN_ID,
+        eos_token_id=EOS_TOKEN_ID,
+        pad_token_id=PAD_TOKEN_ID,
+        temperature=TEMPERATURE,
+        device=DEVICE
+    )
+
+    with open(output_test_file, "w") as outfile:
+        outfile.write(f"Prompt:\n{prompt}\n")
+        outfile.write("Generated Unit Test:\n")
+        outfile.write(generated_test + "\n")
 
 
 # MAIN CODE
@@ -313,7 +329,7 @@ def prompt_model(model, tokenizer, name):
 tokenizer = Tokenizer(TOKENIZER_PREFIX)
 print('expected V size: ', VOCAB_SIZE)
 if train_new_tokenizer:
-    tokenizer.train(vocab_size=VOCAB_SIZE, jsonl_file=TRAIN_FILE, sample_limit=10000)
+    tokenizer.train(vocab_size=VOCAB_SIZE, jsonl_file=TRAIN_TOKENIZER_FILE, sample_limit=None)
 
 device = torch.device(DEVICE)
 tokenizer.load()
