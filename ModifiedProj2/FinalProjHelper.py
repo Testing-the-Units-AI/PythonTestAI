@@ -177,7 +177,7 @@ class TextDatasetTED(Dataset):
         # With the provided jsonl files from the handout...
         with open(filepath, "r", encoding="utf-8") as file:
             # Line by line (with each line being a prompt/completion pair)...
-            for line in tqdm(file, desc="Tokenizing dataset"):
+            for line in tqdm(file, desc="Tokenizing dataset", dynamic_ncols=True, leave=True, ascii=True):
                 item = json.loads(line)
                 src_tokens = tokenizer.encode(item["code"])[:max_src_len]
                 tgt_tokens = tokenizer.encode(item["test"])[:max_tgt_len]
