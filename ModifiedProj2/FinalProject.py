@@ -42,7 +42,6 @@ MODEL_WEIGHTS_DIR = "final_model_weights.pth"
 
 TOKENIZER_PREFIX = 'bpe_model' # Tokenizer name
 TOKENIZER_PATH = TOKENIZER_PREFIX + ".model"
-PAD_TOKEN_ID = 5
 
 VOCAB_SIZE = 7017
 MAX_TRAIN_SEQ_LEN = 1024
