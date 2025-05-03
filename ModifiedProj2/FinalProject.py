@@ -1,4 +1,13 @@
 import argparse
+from FinalProjHelper import *
+import torch
+import torch.nn as nn
+from tqdm import tqdm
+import sentencepiece as spm
+import matplotlib.pyplot as plt
+from torch.utils.data import DataLoader
+import math
+from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_new_tokenizer', type=bool, default=False, help="Needed if no .model file in project root")
@@ -41,10 +50,10 @@ MAX_GEN_SEQ_LEN = 1024
 
 
 #MODIFIABLE CONSTANTS FOR MODEL TRAINING START HERE
-DEVICE = "cuda"
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 BATCH_SIZE = 128
-EPOCHS = 1
+EPOCHS = 15
 LEARNING_RATE = .002
 # Dictates creativity of the model, < 1 more deterministic, > 1 more creative/stochastic, 1 is no change from base model.
 TEMPERATURE = .9
@@ -59,15 +68,7 @@ N_HEADS = 8
 
 # IMPORTANT FUNCTIONS
 
-from FinalProjHelper import *
-import torch
-import torch.nn as nn
-from tqdm import tqdm
-import sentencepiece as spm
-import matplotlib.pyplot as plt
-from torch.utils.data import DataLoader
-import math
-from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
+
 
 
 def collate_fn(batch):
@@ -205,7 +206,7 @@ def train_model(model, device, tokenizer, model_type=""):
                 "optimizer_state": optimizer.state_dict(),
                 "epoch": epoch,
                 "train_loss": avg_train_loss,
-                "test_loss": avg_test_loss 
+                "test_loss": avg_test_loss
         }, f"./training_saves/checkpoint_epoch_{epoch+1}.pth")
 
         if (no_improve_epochs >= EARLY_EPOCH_STOP):
@@ -244,6 +245,7 @@ def plotLossOverEpochs(epochs, train_loss, test_loss, model_type=""):
     plt.plot(x_range, test_loss, label="Testing Loss", color='orange')
 
     plt.legend()
+    plt.savefig("./ModelLossCurves/6Epochs.png", dpi = 1200)
     plt.show()
 
 
@@ -386,4 +388,4 @@ else:
 
 # TRANSFORMER ED
 
-prompt_model(transformer_model, tokenizer, transformer_model.name)
+# prompt_model(transformer_model, tokenizer, transformer_model.name)
