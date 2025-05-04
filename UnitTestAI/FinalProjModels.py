@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
 
+from UnitTestAI.FinalProjHelper import PYTEST_TOKEN_ID, UNITTEST_TOKEN_ID
+from UnitTestAI.FinalProject import TestFrameworkType
+
+
 class TransformerEDLanguageModel(nn.Module):
 
     def __init__(self, vocab_size, embed_dim=256, enc_num_layers=6, dec_num_layers=6, dropout=0.2, pad_token_id=0, n_heads=8, seq_len=512, name="TED Model"):
@@ -64,7 +68,7 @@ class TransformerEDLanguageModel(nn.Module):
 
         return logits
     
-    def generate(self, tokenizer, prompt, max_seq_length=200, bos_token_id=None, eos_token_id=None, pad_token_id=None, temperature=1.0, device='cpu'):
+    def generate(self, tokenizer, prompt, test_framework: TestFrameworkType, max_seq_length=200, bos_token_id=None, eos_token_id=None, pad_token_id=None, temperature=1.0, device='cpu'):
         """ 
         Generates a response, token by token, to the prompt given to the model.
 
@@ -84,7 +88,8 @@ class TransformerEDLanguageModel(nn.Module):
         enc_pad_mask = (enc_input_ids == pad_token_id)  # shape (1, src_len)
 
         # Set up the generation with the bos token id so the model is more aware we are attempting a unit test now
-        generated_ids = [bos_token_id] if bos_token_id is not None else []
+        fw_token_id = PYTEST_TOKEN_ID if test_framework == "pytest" else UNITTEST_TOKEN_ID
+        generated_ids = [bos_token_id, fw_token_id] if bos_token_id is not None else []
 
         # Responses can be a maximum of max_seq_length tokens long
         for _ in range(max_seq_length):

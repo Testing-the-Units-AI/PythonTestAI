@@ -20,8 +20,6 @@ PAD_TOKEN_ID = 5
 PYTEST_TOKEN_ID = 9
 UNITTEST_TOKEN_ID = 10
 
-# FIXME: Need to test: pt & ut token ids are correct (9, 10, resp.). Token ID correctly appended to target shit
-
 #
 # # For tokenizer training
 # def merge_text_files(directory, outfile_name):
