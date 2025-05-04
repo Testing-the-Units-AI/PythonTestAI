@@ -404,3 +404,7 @@ for config in configs:
             transformer_model.load_state_dict(torch.load(old_model))
         except FileNotFoundError:
             print("Model Not Found")
+
+# TRANSFORMER ED
+
+# prompt_model(transformer_model, tokenizer, transformer_model.name)
