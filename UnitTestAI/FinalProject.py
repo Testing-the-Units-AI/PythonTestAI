@@ -239,6 +239,8 @@ def plotLossOverEpochs(epochs, train_loss, test_loss, model_name,  model_type=""
     :param test_loss: The losses of testing over the epochs
     :param name: The name of the trained model being evaluated
     """
+    plt.figure(figsize=(10, 6))
+
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.title(model_type + " Loss per Epoch")
