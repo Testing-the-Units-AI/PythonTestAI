@@ -128,7 +128,6 @@ def train_model(model, device, tokenizer, model_type=""):
 
     train_losses, test_losses = [], []
     for epoch in range(EPOCHS):
-        print('Epoch: ', epoch)
 
         # Emptying cache and unused data on every epoch since CUDA would run out of memory otherwise
         torch.cuda.empty_cache()
@@ -255,6 +254,8 @@ def plotLossOverEpochs(epochs, train_loss, test_loss, model_name,  model_type=""
 
     plt.legend()
     plt.savefig(f"./ModelLossCurves/{model_name}.png", dpi = 1200)
+    plt.clf()
+    plt.close()
     # plt.show()
 
 
