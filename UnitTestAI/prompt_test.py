@@ -72,24 +72,3 @@ transformer_model.load_state_dict(torch.load('TrainingSaves/final_model_weights.
 #     print(f'out: {out}')
 #
 #     assert len(out) > 5
-
-
-
-# Collect all relative file paths from MODEL_INPUT_DIR
-file_paths = [
-    os.path.relpath(os.path.join(dirpath, filename), MODEL_INPUT_DIR)
-    for dirpath, _, filenames in os.walk(MODEL_INPUT_DIR)
-    for filename in filenames
-]
-
-# For each one generate unit tests with both frameworks
-framework_options = ['pytest', 'unittest']
-for fw in framework_options:
-    for fp in file_paths:
-        in_path = os.path.join(MODEL_INPUT_DIR, fp)
-        out_path = os.path.join(MODEL_OUTPUT_DIR, f"{fw}_{fp}")
-
-        os.makedirs(os.path.dirname(out_path), exist_ok=True)
-
-        prompt_model(transformer_model, tokenizer, fw, in_path, out_path)
-
