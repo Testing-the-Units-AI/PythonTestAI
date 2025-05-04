@@ -33,7 +33,7 @@ print(f"  output_test_file    = {output_test_file}")
 
 
 # Tokenizer (don't train again)
-tokenizer = Tokenizer('./TokenizerModels/bpe_model')
+tokenizer = Tokenizer('bpe_model')
 device = torch.device(DEVICE)
 tokenizer.load()
 
