@@ -41,7 +41,7 @@ TRAIN_FILE = 'data/all.jsonl'
 TEST_FILE = 'data/dataset.jsonl'
 TRAIN_TOKENIZER_FILE = 'data/dataset.jsonl'
 
-TOKENIZER_PREFIX = 'bpe_model' # Tokenizer name
+TOKENIZER_PREFIX = 'test' # Tokenizer name
 TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX + ".model"
 PAD_TOKEN_ID = 5
 
