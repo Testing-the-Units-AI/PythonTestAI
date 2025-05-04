@@ -64,7 +64,7 @@ class TransformerEDLanguageModel(nn.Module):
 
         return logits
     
-    def generate(self, tokenizer, prompt, max_seq_length=200, bos_token_id=None, eos_token_id=None, pad_token_id=None, temperature=1.0, device='cpu'):
+    def generate(self, tokenizer, prompt, max_seq_length=200, bos_token_id=None, eos_token_id=None, pad_token_id=None, temperature=1.0, top_k=4, device='cpu'):
         """ 
         Generates a response, token by token, to the prompt given to the model.
 
@@ -99,11 +99,16 @@ class TransformerEDLanguageModel(nn.Module):
                 tgt_padding_mask=dec_pad_mask
             )
 
-            logits = logits[:, -1, :]
+            logits = logits[:, -1, :] / temperature
 
-            logits = logits / temperature
-            probs = torch.softmax(logits, dim=1)
-            next_token = torch.argmax(probs, dim=-1).item()
+            # Top-k sampling
+            if top_k > 0:
+                values, indices = torch.topk(logits, top_k)
+                probs = torch.softmax(values, dim=-1)
+                next_token = indices[0, torch.multinomial(probs, num_samples=1)].item()
+            else:
+                probs = torch.softmax(logits, dim=-1)
+                next_token = torch.multinomial(probs, num_samples=1).item()
 
             # Check if we are using eos token ID, then ask if what was generated was that ID so we can end early
             if eos_token_id is not None and next_token == eos_token_id:

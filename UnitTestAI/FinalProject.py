@@ -59,6 +59,7 @@ EPOCHS = 15
 LEARNING_RATE = .002
 # Dictates creativity of the model, < 1 more deterministic, > 1 more creative/stochastic, 1 is no change from base model.
 TEMPERATURE = .9
+TOP_K = 4
 EARLY_EPOCH_STOP = 2
 EPOCHS_PER_SAVE = 1
 EMBED_DIM = 128
@@ -330,6 +331,7 @@ def prompt_model(model, tokenizer, name):
         eos_token_id=EOS_TOKEN_ID,
         pad_token_id=PAD_TOKEN_ID,
         temperature=TEMPERATURE,
+        top_k=TOP_K,
         device=DEVICE
     )
 
