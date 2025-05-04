@@ -31,10 +31,9 @@ print(f"  framework           = {framework}")
 print(f"  input_code_file     = {input_code_file}")
 print(f"  output_test_file    = {output_test_file}")
 
-exit(0)
 
 # Tokenizer (don't train again)
-tokenizer = Tokenizer('bpe_tokenizer')
+tokenizer = Tokenizer('./TokenizerModels/bpe_model')
 device = torch.device(DEVICE)
 tokenizer.load()
 
