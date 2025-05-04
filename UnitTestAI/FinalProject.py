@@ -1,6 +1,7 @@
 import argparse
 from FinalProjHelper import *
 from FinalProjModels import TransformerEDLanguageModel, TestFrameworkType
+from MakeModelPlots import plotLossOverEpochs
 import torch
 import torch.nn as nn
 import json
@@ -234,38 +235,6 @@ def train_model(model, device, tokenizer, model_type=""):
     plotLossOverEpochs(len(train_losses), train_losses, test_losses, model_name, model_type)
 
     return train_losses, test_losses
-
-
-def plotLossOverEpochs(epochs, train_loss, test_loss, model_name,  model_type=""):
-    """
-    Creates a plot showing the losses over time for a model.
-
-    :param epochs: The number of epochs the training took place over
-    :param train_loss: The losses of training over the epochs
-    :param test_loss: The losses of testing over the epochs
-    :param name: The name of the trained model being evaluated
-    """
-    plt.figure(figsize=(10, 6))
-
-    plt.xlabel("Epochs")
-    plt.ylabel("Loss")
-    plt.title(model_type + " Loss per Epoch")
-
-    x_range = range(1, epochs + 1)
-
-    plt.plot(x_range, train_loss)
-    plt.plot(x_range, test_loss)
-
-    plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
-
-    plt.plot(x_range, train_loss, label="Training Loss", color='blue')
-    plt.plot(x_range, test_loss, label="Testing Loss", color='orange')
-
-    plt.legend()
-    plt.savefig(f"./ModelLossCurves/{model_name}.png", dpi = 1200)
-    plt.clf()
-    plt.close()
-    # plt.show()
 
 
 # Because the loss is already cross entropy, we can just do the natural exponentiation of the loss
