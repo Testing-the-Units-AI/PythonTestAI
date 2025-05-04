@@ -55,7 +55,7 @@ class Tokenizer:
         self.sp = spm.SentencePieceProcessor()
 
     def load(self):
-        self.sp.Load(f"{self.tokenizer_prefix}.model")
+        self.sp.Load(f"./TokenizerModels/{self.tokenizer_prefix}.model")
 
     def _reconstruct_code(self, pieces, num_indent_spaces = 4):
         indent_level = 0
