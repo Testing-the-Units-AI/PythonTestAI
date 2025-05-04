@@ -42,7 +42,7 @@ TEST_FILE = 'data/dataset.jsonl'
 TRAIN_TOKENIZER_FILE = 'data/dataset.jsonl'
 
 TOKENIZER_PREFIX = 'test' # Tokenizer name
-TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX + ".model"
+TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX
 PAD_TOKEN_ID = 5
 
 VOCAB_SIZE = 7017
@@ -342,7 +342,7 @@ def prompt_model(model, tokenizer, name):
 
 
 # MAIN CODE
-tokenizer = Tokenizer(TOKENIZER_PREFIX)
+tokenizer = Tokenizer(TOKENIZER_PATH)
 print('expected V size: ', VOCAB_SIZE)
 if train_new_tokenizer:
     tokenizer.train(vocab_size=VOCAB_SIZE, jsonl_file=TRAIN_TOKENIZER_FILE, sample_limit=None)
