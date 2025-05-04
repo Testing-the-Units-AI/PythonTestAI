@@ -1,5 +1,10 @@
 import torch
 import torch.nn as nn
+from typing import Literal
+
+from FinalProjHelper import PYTEST_TOKEN_ID, UNITTEST_TOKEN_ID
+
+TestFrameworkType = Literal["pytest", "unittest"]
 
 class TransformerEDLanguageModel(nn.Module):
 
@@ -64,7 +69,7 @@ class TransformerEDLanguageModel(nn.Module):
 
         return logits
     
-    def generate(self, tokenizer, prompt, max_seq_length=200, bos_token_id=None, eos_token_id=None, pad_token_id=None, temperature=1.0, top_k=4, device='cpu'):
+    def generate(self, tokenizer, prompt, test_framework: TestFrameworkType, max_seq_length=200, bos_token_id=None, eos_token_id=None, pad_token_id=None, temperature=1.0, top_k=4, device='cpu'):
         """ 
         Generates a response, token by token, to the prompt given to the model.
 
@@ -84,7 +89,8 @@ class TransformerEDLanguageModel(nn.Module):
         enc_pad_mask = (enc_input_ids == pad_token_id)  # shape (1, src_len)
 
         # Set up the generation with the bos token id so the model is more aware we are attempting a unit test now
-        generated_ids = [bos_token_id] if bos_token_id is not None else []
+        fw_token_id = PYTEST_TOKEN_ID if test_framework == "pytest" else UNITTEST_TOKEN_ID
+        generated_ids = [bos_token_id, fw_token_id] if bos_token_id is not None else []
 
         # Responses can be a maximum of max_seq_length tokens long
         for _ in range(max_seq_length):

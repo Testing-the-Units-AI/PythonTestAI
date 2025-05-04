@@ -1,11 +1,10 @@
 import argparse
 from FinalProjHelper import *
-from FinalProjModels import TransformerEDLanguageModel
+from FinalProjModels import TransformerEDLanguageModel, TestFrameworkType
 import torch
 import torch.nn as nn
 import json
 from tqdm import tqdm
-import sentencepiece as spm
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from torch.utils.data import DataLoader
@@ -17,16 +16,17 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--train_new_tokenizer', type=bool, default=False, help="Needed if no .model file in project root")
 parser.add_argument('--train_new_model', type=bool, default=False)
 parser.add_argument('--old_model_dir', type=str, default="", help="Needed if using old model save")
-parser.add_argument('--framework', help="Do you want to generate pytest or unittest tests?")
-parser.add_argument('--input_code_file', default=False, help="Where do you want to get code to generate tests for?")
-parser.add_argument('--output_test_file', type=bool, default=False, help="Where do you want to output tests?")
-
+parser.add_argument(
+    '--framework', default='u', choices=['p', 'u'], help="Choose 'p' for pytest or 'u' for unittest (default: 'u')"
+)
+parser.add_argument('--input_code_file', default=None, help="Where do you want to get code to generate tests for?")
+parser.add_argument('--output_test_file', default=None, help="Where do you want to output tests?")
 args = parser.parse_args()
 
 train_new_tokenizer = getattr(args, "train_new_tokenizer", False)
 train_new_model = getattr(args, "train_new_model", False)
 old_model = getattr(args, "old_model_dir", "")
-framework = getattr(args, "framework", None)
+framework: TestFrameworkType = "unittest" if getattr(args, "framework", None) == 'u' else "pytest"
 input_code_file = getattr(args, "input_code_file", None)
 output_test_file = getattr(args, "output_test_file", None)
 
@@ -38,12 +38,13 @@ print(f"  input_code_file     = {input_code_file}")
 print(f"  output_test_file    = {output_test_file}")
 
 # CONSTANTS
+
 TRAIN_FILE = 'data/all.jsonl'
 TEST_FILE = 'data/dataset.jsonl'
 TRAIN_TOKENIZER_FILE = 'data/dataset.jsonl'
 
 TOKENIZER_PREFIX = 'test' # Tokenizer name
-TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX + ".model"
+TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX
 PAD_TOKEN_ID = 5
 
 VOCAB_SIZE = 7017
@@ -128,7 +129,6 @@ def train_model(model, device, tokenizer, model_type=""):
 
     train_losses, test_losses = [], []
     for epoch in range(EPOCHS):
-        print('Epoch: ', epoch)
 
         # Emptying cache and unused data on every epoch since CUDA would run out of memory otherwise
         torch.cuda.empty_cache()
@@ -239,6 +239,8 @@ def plotLossOverEpochs(epochs, train_loss, test_loss, model_name,  model_type=""
     :param test_loss: The losses of testing over the epochs
     :param name: The name of the trained model being evaluated
     """
+    plt.figure(figsize=(10, 6))
+
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.title(model_type + " Loss per Epoch")
@@ -255,6 +257,8 @@ def plotLossOverEpochs(epochs, train_loss, test_loss, model_name,  model_type=""
 
     plt.legend()
     plt.savefig(f"./ModelLossCurves/{model_name}.png", dpi = 1200)
+    plt.clf()
+    plt.close()
     # plt.show()
 
 
@@ -322,13 +326,18 @@ def BLEU(model, tokenizer, test_loader):
     return bleu_score
 
 
-def prompt_model(model, tokenizer, name):
-    with open(input_code_file, "r") as infile:
+def prompt_model(model, tokenizer, test_framework: TestFrameworkType, input_file, output_file=None):
+    if input_file is None:
+        print("Must specify input through input file. Cannot input through CLI")
+        return
+
+    with open(input_file, "r") as infile:
         prompt = infile.read().strip()
 
     generated_test = model.generate(
         tokenizer,
         prompt,
+        test_framework,
         max_seq_length=MAX_GEN_SEQ_LEN,
         bos_token_id=BOS_TOKEN_ID,
         eos_token_id=EOS_TOKEN_ID,
@@ -338,16 +347,19 @@ def prompt_model(model, tokenizer, name):
         device=DEVICE
     )
 
-    with open(output_test_file, "w") as outfile:
+    if output_file is None:
+        print(generated_test + "\n")
+        return
+
+    with open(output_file, "w") as outfile:
         outfile.write(f"Prompt:\n{prompt}\n")
-        outfile.write("Generated Unit Test:\n")
+        outfile.write(f"Generated Unit Test ({framework}):\n")
         outfile.write(generated_test + "\n")
 
 
 
-
 # MAIN CODE
-tokenizer = Tokenizer(TOKENIZER_PREFIX)
+tokenizer = Tokenizer(TOKENIZER_PATH)
 print('expected V size: ', VOCAB_SIZE)
 if train_new_tokenizer:
     tokenizer.train(vocab_size=VOCAB_SIZE, jsonl_file=TRAIN_TOKENIZER_FILE, sample_limit=None)
