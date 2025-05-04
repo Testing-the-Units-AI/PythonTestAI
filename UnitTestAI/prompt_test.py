@@ -4,8 +4,9 @@ import torch
 
 
 from FinalProject import prompt_model, DEVICE, VOCAB_SIZE, EMBED_DIM, NUM_LAYERS, N_HEADS, DROPOUT, \
-    MAX_TRAIN_SEQ_LEN, TestFrameworkType
+    MAX_TRAIN_SEQ_LEN
 from FinalProjHelper import Tokenizer, PAD_TOKEN_ID
+from FinalProjModels import TestFrameworkType
 
 # Test prompt model: load in model, read input from file, store output in file (as expected by arg parse)
 

@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
+from typing import Literal
 
 from FinalProjHelper import PYTEST_TOKEN_ID, UNITTEST_TOKEN_ID
-from FinalProject import TestFrameworkType
 
+TestFrameworkType = Literal["pytest", "unittest"]
 
 class TransformerEDLanguageModel(nn.Module):
 

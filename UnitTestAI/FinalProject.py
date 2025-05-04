@@ -1,18 +1,15 @@
 import argparse
 from FinalProjHelper import *
-from FinalProjModels import TransformerEDLanguageModel
+from FinalProjModels import TransformerEDLanguageModel, TestFrameworkType
 import torch
 import torch.nn as nn
 import json
 from tqdm import tqdm
-from typing import Literal
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 import math
 import os
 from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
-
-TestFrameworkType = Literal["pytest", "unittest"]
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_new_tokenizer', type=bool, default=False, help="Needed if no .model file in project root")
