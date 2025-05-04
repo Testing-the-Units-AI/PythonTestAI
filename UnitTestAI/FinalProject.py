@@ -322,7 +322,7 @@ def BLEU(model, tokenizer, test_loader):
     return bleu_score
 
 
-def prompt_model(model, tokenizer, framework: , input_file, output_file=None):
+def prompt_model(model, tokenizer, test_framework: TestFrameworkType, input_file, output_file=None):
     if input_file is None:
         print("Must specify input through input file. Cannot input through CLI")
         return
@@ -333,6 +333,7 @@ def prompt_model(model, tokenizer, framework: , input_file, output_file=None):
     generated_test = model.generate(
         tokenizer,
         prompt,
+        test_framework,
         max_seq_length=MAX_GEN_SEQ_LEN,
         bos_token_id=BOS_TOKEN_ID,
         eos_token_id=EOS_TOKEN_ID,

@@ -55,7 +55,7 @@ transformer_model = TransformerEDLanguageModel(
 
 transformer_model.load_state_dict(torch.load('./TrainingSaves/final_model_weights.pth'))
 
-prompt_model(transformer_model, tokenizer, transformer_model.name, input_code_file, output_test_file)
+prompt_model(transformer_model, tokenizer, framework, input_code_file, output_test_file)
 
 # TODO: These should be reasonable if prompt_model works
 with open(input_code_file, 'r') as in_artifact:
