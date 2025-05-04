@@ -43,8 +43,8 @@ TRAIN_FILE = 'data/all.jsonl'
 TEST_FILE = 'data/dataset.jsonl'
 TRAIN_TOKENIZER_FILE = 'data/dataset.jsonl'
 
-TOKENIZER_PREFIX = 'test' # Tokenizer name
-TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX
+TOKENIZER_PREFIX = 'test'
+TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX + ".model"
 PAD_TOKEN_ID = 5
 
 VOCAB_SIZE = 7017
@@ -69,6 +69,12 @@ HIDDEN_DIM = 256
 NUM_LAYERS = 4
 DROPOUT = .2
 N_HEADS = 8
+
+# Constants for model prompting
+MODEL_INPUT_DIR = "./ModelInputCode"
+MODEL_OUTPUT_DIR = "./ModelOutputUnitTests"
+
+
 
 # IMPORTANT FUNCTIONS
 def collate_fn(batch):
@@ -347,19 +353,15 @@ def prompt_model(model, tokenizer, test_framework: TestFrameworkType, input_file
         device=DEVICE
     )
 
-    if output_file is None:
-        print(generated_test + "\n")
-        return
+    if output_file is not None:
+        with open(output_file, "w") as outfile:
+            outfile.write(f"# Generated Unit Test for {input_file} using {test_framework}:\n\n")
+            outfile.write(generated_test + "\n")
 
-    with open(output_file, "w") as outfile:
-        outfile.write(f"Prompt:\n{prompt}\n")
-        outfile.write(f"Generated Unit Test ({framework}):\n")
-        outfile.write(generated_test + "\n")
-
-
+    return generated_test
 
 # MAIN CODE
-tokenizer = Tokenizer(TOKENIZER_PATH)
+tokenizer = Tokenizer(TOKENIZER_PREFIX)
 print('expected V size: ', VOCAB_SIZE)
 if train_new_tokenizer:
     tokenizer.train(vocab_size=VOCAB_SIZE, jsonl_file=TRAIN_TOKENIZER_FILE, sample_limit=None)
@@ -424,4 +426,23 @@ for config in configs:
 
 # TRANSFORMER ED
 
-# prompt_model(transformer_model, tokenizer, transformer_model.name)
+
+# If input file given, use that; otherwise, read input files from special prompt directory
+
+# Collect all relative file paths from MODEL_INPUT_DIR
+file_paths = [
+    os.path.relpath(os.path.join(dirpath, filename), MODEL_INPUT_DIR)
+    for dirpath, _, filenames in os.walk(MODEL_INPUT_DIR)
+    for filename in filenames
+]
+
+# For each one generate unit tests with both frameworks
+framework_options = ['pytest', 'unittest']
+for fw in framework_options:
+    for fp in file_paths:
+        in_path = os.path.join(MODEL_INPUT_DIR, fp)
+        out_path = os.path.join(MODEL_OUTPUT_DIR, f"{fw}_{fp}")
+
+        os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
+        prompt_model(transformer_model, tokenizer, fw, in_path, out_path)
