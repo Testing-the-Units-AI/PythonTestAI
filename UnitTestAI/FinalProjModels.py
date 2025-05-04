@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn
 from typing import Literal
 
+from tqdm import tqdm
+
 from FinalProjHelper import PYTEST_TOKEN_ID, UNITTEST_TOKEN_ID
 
 TestFrameworkType = Literal["pytest", "unittest"]
@@ -89,10 +91,15 @@ class TransformerEDLanguageModel(nn.Module):
         enc_pad_mask = (enc_input_ids == pad_token_id)  # shape (1, src_len)
 
         # Set up the generation with the bos token id so the model is more aware we are attempting a unit test now
+        put_tok_ids = bos_token_id is not None
         fw_token_id = PYTEST_TOKEN_ID if test_framework == "pytest" else UNITTEST_TOKEN_ID
-        generated_ids = [bos_token_id, fw_token_id] if bos_token_id is not None else []
+        generated_ids = [bos_token_id, fw_token_id] if put_tok_ids else []
 
         # Responses can be a maximum of max_seq_length tokens long
+        if put_tok_ids:
+            max_seq_length = max_seq_length - 1
+
+        bar = tqdm(total=max_seq_length)
         for _ in range(max_seq_length):
             dec_input_ids = torch.tensor([generated_ids], dtype=torch.long, device=device)
             # Padding mask just to be thorough, doubt its needed since this is generation but cant hurt
@@ -118,9 +125,13 @@ class TransformerEDLanguageModel(nn.Module):
 
             # Check if we are using eos token ID, then ask if what was generated was that ID so we can end early
             if eos_token_id is not None and next_token == eos_token_id:
+                bar.n = max_seq_length
+                bar.refresh()
                 break
+            bar.update(1)
             # Build our response with next token
             generated_ids.append(next_token)
+        bar.close()
 
         # Once we have an eos token or the max length is reached, return the decoded prompt
         gen_ids = generated_ids[1:] if bos_token_id is not None else generated_ids

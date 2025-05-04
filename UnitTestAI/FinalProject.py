@@ -1,11 +1,13 @@
 import argparse
 from FinalProjHelper import *
 from FinalProjModels import TransformerEDLanguageModel, TestFrameworkType
+from MakeModelPlots import plotLossOverEpochs
 import torch
 import torch.nn as nn
 import json
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 from torch.utils.data import DataLoader
 import math
 import os
@@ -42,8 +44,8 @@ TRAIN_FILE = 'data/all.jsonl'
 TEST_FILE = 'data/dataset.jsonl'
 TRAIN_TOKENIZER_FILE = 'data/dataset.jsonl'
 
-TOKENIZER_PREFIX = 'test' # Tokenizer name
-TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX
+TOKENIZER_PREFIX = 'test'
+TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX + ".model"
 PAD_TOKEN_ID = 5
 
 VOCAB_SIZE = 7017
@@ -68,6 +70,12 @@ HIDDEN_DIM = 256
 NUM_LAYERS = 4
 DROPOUT = .2
 N_HEADS = 8
+
+# Constants for model prompting
+MODEL_INPUT_DIR = "./ModelInputCode"
+MODEL_OUTPUT_DIR = "./ModelOutputUnitTests"
+
+
 
 # IMPORTANT FUNCTIONS
 def collate_fn(batch):
@@ -128,7 +136,6 @@ def train_model(model, device, tokenizer, model_type=""):
 
     train_losses, test_losses = [], []
     for epoch in range(EPOCHS):
-        print('Epoch: ', epoch)
 
         # Emptying cache and unused data on every epoch since CUDA would run out of memory otherwise
         torch.cuda.empty_cache()
@@ -230,34 +237,6 @@ def train_model(model, device, tokenizer, model_type=""):
     return train_losses, test_losses
 
 
-def plotLossOverEpochs(epochs, train_loss, test_loss, model_name,  model_type=""):
-    """
-    Creates a plot showing the losses over time for a model.
-
-    :param epochs: The number of epochs the training took place over
-    :param train_loss: The losses of training over the epochs
-    :param test_loss: The losses of testing over the epochs
-    :param name: The name of the trained model being evaluated
-    """
-    plt.figure(figsize=(10, 6))
-
-    plt.xlabel("Epochs")
-    plt.ylabel("Loss")
-    plt.title(model_type + " Loss per Epoch")
-
-    x_range = range(1, epochs + 1)
-
-    plt.plot(x_range, train_loss)
-    plt.plot(x_range, test_loss)
-
-    plt.plot(x_range, train_loss, label="Training Loss", color='blue')
-    plt.plot(x_range, test_loss, label="Testing Loss", color='orange')
-
-    plt.legend()
-    plt.savefig(f"./ModelLossCurves/{model_name}.png", dpi = 1200)
-    # plt.show()
-
-
 # Because the loss is already cross entropy, we can just do the natural exponentiation of the loss
 # Loss here is the average loss across tokens
 def Perplexity(loss):
@@ -343,19 +322,15 @@ def prompt_model(model, tokenizer, test_framework: TestFrameworkType, input_file
         device=DEVICE
     )
 
-    if output_file is None:
-        print(generated_test + "\n")
-        return
+    if output_file is not None:
+        with open(output_file, "w") as outfile:
+            outfile.write(f"# Generated Unit Test for {input_file} using {test_framework}:\n\n")
+            outfile.write(generated_test + "\n")
 
-    with open(output_file, "w") as outfile:
-        outfile.write(f"Prompt:\n{prompt}\n")
-        outfile.write(f"Generated Unit Test ({framework}):\n")
-        outfile.write(generated_test + "\n")
-
-
+    return generated_test
 
 # MAIN CODE
-tokenizer = Tokenizer(TOKENIZER_PATH)
+tokenizer = Tokenizer(TOKENIZER_PREFIX)
 print('expected V size: ', VOCAB_SIZE)
 if train_new_tokenizer:
     tokenizer.train(vocab_size=VOCAB_SIZE, jsonl_file=TRAIN_TOKENIZER_FILE, sample_limit=None)
@@ -417,7 +392,3 @@ for config in configs:
             transformer_model.load_state_dict(torch.load(old_model))
         except FileNotFoundError:
             print("Model Not Found")
-
-# TRANSFORMER ED
-
-# prompt_model(transformer_model, tokenizer, transformer_model.name)
