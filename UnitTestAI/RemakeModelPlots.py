@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 import os
 import torch
 import re
@@ -22,6 +23,8 @@ def plotLossOverEpochs(epochs, train_loss, test_loss, model_name,  model_type=""
 
     plt.plot(x_range, train_loss)
     plt.plot(x_range, test_loss)
+
+    plt.gca().xaxis.set_major_locator(MaxNLocator(integer=True))
 
     plt.plot(x_range, train_loss, label="Training Loss", color='blue')
     plt.plot(x_range, test_loss, label="Testing Loss", color='orange')
