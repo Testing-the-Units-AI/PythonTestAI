@@ -1,8 +1,8 @@
 import torch
 import torch.nn as nn
 
-from UnitTestAI.FinalProjHelper import PYTEST_TOKEN_ID, UNITTEST_TOKEN_ID
-from UnitTestAI.FinalProject import TestFrameworkType
+from FinalProjHelper import PYTEST_TOKEN_ID, UNITTEST_TOKEN_ID
+from FinalProject import TestFrameworkType
 
 
 class TransformerEDLanguageModel(nn.Module):
