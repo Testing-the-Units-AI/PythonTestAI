@@ -359,6 +359,16 @@ except json.JSONDecodeError:
 except Exception as e:
     print(f"An unexpected error occurred: {e}")
 
+best_epochs = [
+    "nothing0",
+    "nothing1",
+    "nothing2",
+    "TrainLoss_1.8581_TestLoss_1.8492_Perplexity_6.4117_BLEU_0.2344.pth",
+    "nothing4",
+    "nothing5",
+    "nothing6",
+]
+
 for config in configs:
 
     BATCH_SIZE = config["BATCH_SIZE"]
@@ -372,6 +382,12 @@ for config in configs:
     NUM_LAYERS = config["NUM_LAYERS"]
     DROPOUT = float(config["DROPOUT"])
     N_HEADS = config["N_HEADS"]
+    # TrainLoss_1.8581_TestLoss_1.8492_Perplexity_6.4117_BLEU_0.2344.pth
+    name = f"Epochs_{EPOCHS}_Batch_Size_{BATCH_SIZE}_Temp_{TEMPERATURE}_Learning_{LEARNING_RATE}_Layers_{NUM_LAYERS}_Dropout_{DROPOUT}"
+    print(f"Doing model... \'{name}\'")
+
+    best_e = best_epochs[i]
+    model_path = f"./TrainingSaves/{name}/{best_e}"
 
     transformer_model = TransformerEDLanguageModel(
         vocab_size=VOCAB_SIZE,
@@ -390,6 +406,6 @@ for config in configs:
     else:
         print("Loading old weights...")
         try:
-            transformer_model.load_state_dict(torch.load(old_model))
+            transformer_model.load_state_dict(torch.load(model_path))
         except FileNotFoundError:
             print("Model Not Found")
