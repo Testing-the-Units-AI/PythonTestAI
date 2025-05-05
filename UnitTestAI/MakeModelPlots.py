@@ -65,7 +65,7 @@ for model in models:
 
 
 	plotLossOverEpochs(
-		epochs=epochs+1,
+		epochs=max(epochs)+1,
 		train_loss=training_loss,
 		test_loss=test_loss,
 		model_name=model_name

@@ -1,7 +1,7 @@
 import argparse
 from FinalProjHelper import *
 from FinalProjModels import TransformerEDLanguageModel, TestFrameworkType
-from MakeModelPlots import plotLossOverEpochs
+# from MakeModelPlots import plotLossOverEpochs
 import torch
 import torch.nn as nn
 import json
@@ -232,7 +232,7 @@ def train_model(model, device, tokenizer, model_type=""):
 
     print(f"Epoch {epoch + 1}: Train Loss={avg_train_loss:.4f}, Test Loss={avg_test_loss:.4f}")
     print(f"Model Perplexity: {Perplexity(avg_train_loss):.4f} Model BLEU: {BLEU(model, tokenizer, test_loader):.4f}")
-    plotLossOverEpochs(len(train_losses), train_losses, test_losses, model_name, model_type)
+    # plotLossOverEpochs(len(train_losses), train_losses, test_losses, model_name, model_type)
 
     return train_losses, test_losses
 
