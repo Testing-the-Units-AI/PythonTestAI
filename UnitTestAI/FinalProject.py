@@ -388,7 +388,7 @@ for i, config in enumerate(configs):
     print(f"Doing model... \'{name}\'")
 
     best_e = best_epochs[i]
-    model_path = f"{name}/{best_e}"
+    model_path = f"./TrainingSaves/{name}/{best_e}"
 
     transformer_model = TransformerEDLanguageModel(
         vocab_size=VOCAB_SIZE,
