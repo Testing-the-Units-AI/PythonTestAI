@@ -369,7 +369,10 @@ best_epochs = [
     "nothing6",
 ]
 
-for config in configs:
+for i, config in enumerate(configs):
+
+    if i != 3:
+        continue
 
     BATCH_SIZE = config["BATCH_SIZE"]
     EPOCHS = config["EPOCHS"]
