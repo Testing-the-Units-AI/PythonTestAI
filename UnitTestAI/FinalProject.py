@@ -62,7 +62,7 @@ EPOCHS = 15
 LEARNING_RATE = .002
 # Dictates creativity of the model, < 1 more deterministic, > 1 more creative/stochastic, 1 is no change from base model.
 TEMPERATURE = .9
-TOP_K = 4
+TOP_K = 1
 EARLY_EPOCH_STOP = 2
 EPOCHS_PER_SAVE = 1
 EMBED_DIM = 128
@@ -360,18 +360,12 @@ except Exception as e:
     print(f"An unexpected error occurred: {e}")
 
 best_epochs = [
-    "nothing0",
-    "nothing1",
-    "nothing2",
     "TrainLoss_1.8581_TestLoss_1.8492_Perplexity_6.4117_BLEU_0.2344.pth",
-    "nothing4",
-    "nothing5",
-    "nothing6",
 ]
 
 for i, config in enumerate(configs):
 
-    if i != 3:
+    if i != 0:
         continue
 
     BATCH_SIZE = config["BATCH_SIZE"]
