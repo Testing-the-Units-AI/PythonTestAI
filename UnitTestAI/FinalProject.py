@@ -136,6 +136,7 @@ def train_model(model, device, tokenizer, model_type=""):
 
     train_losses, test_losses = [], []
     for epoch in range(EPOCHS):
+        print('Epoch: ', epoch)
 
         # Emptying cache and unused data on every epoch since CUDA would run out of memory otherwise
         torch.cuda.empty_cache()
