@@ -385,6 +385,7 @@ for i, config in enumerate(configs):
     N_HEADS = config["N_HEADS"]
 
     name = f"Epochs_{EPOCHS}_Batch_Size_{BATCH_SIZE}_Temp_{TEMPERATURE}_Learning_{LEARNING_RATE}_Layers_{NUM_LAYERS}_Dropout_{DROPOUT}"
+    print(f"Doing model... \'{name}\'")
 
     best_e = best_epochs[i]
     model_path = f"{name}/{best_e}"
@@ -404,7 +405,7 @@ for i, config in enumerate(configs):
     if train_new_model:
         train_model(transformer_model, device, tokenizer, transformer_model.name)
     else:
-        print("Loading old weights...")
+        print(f"Loading old weights from \'{model_path}\'")
         try:
             transformer_model.load_state_dict(torch.load(model_path))
         except FileNotFoundError:
