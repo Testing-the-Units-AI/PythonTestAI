@@ -362,12 +362,15 @@ except Exception as e:
 
 # TODO: Remove this array after
 best_epochs = [
-    "checkpoint_epoch_1.pth",
-    "checkpoint_epoch_3.pth",
-    "checkpoint_epoch_3.pth",
-    "checkpoint_epoch_2.pth",
-    "checkpoint_epoch_3.pth",
-    "checkpoint_epoch_5.pth"
+    "TrainLoss_1.9676_TestLoss_2.4080_Perplexity_7.1532_BLEU_0.1689.pth", # (0) Epochs_3_Batch_Size_128_Temp_0.9_Learning_0.002_Layers_4_Dropout_0.2
+    "TrainLoss_4.7667_TestLoss_5.7543_Perplexity_117.5363_BLEU_0.0001.pth", # (1) Epochs_3_Batch_Size_128_Temp_0.8_Learning_0.004_Layers_4_Dropout_0.2
+    "TrainLoss_1.8592_TestLoss_2.1256_Perplexity_6.4184_BLEU_0.2177.pth", # (2) Epochs_3_Batch_Size_128_Temp_1.1_Learning_0.001_Layers_4_Dropout_0.2
+    "nothing3"
+    "TrainLoss_4.6952_TestLoss_16.3529_Perplexity_109.4210_BLEU_0.0000.pth", # (4) Epochs_6_Batch_Size_128_Temp_0.8_Learning_0.002_Layers_4_Dropout_0.3
+    "TrainLoss_1.9803_TestLoss_3.8407_Perplexity_7.2449_BLEU_0.0479.pth", # (5) Epochs_6_Batch_Size_128_Temp_1.1_Learning_0.001_Layers_4_Dropout_0.2
+    "checkpoint_epoch_5.pth"                                              # (6) Epochs_12_Batch_Size_128_Temp_0.9_Learning_0.002_Layers_4_Dropout_0.2
+    "nothing7"
+    "nothing8"
 ]
 
 for i, config in enumerate(configs):
