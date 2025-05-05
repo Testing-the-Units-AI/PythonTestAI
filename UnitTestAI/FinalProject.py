@@ -359,7 +359,18 @@ except Exception as e:
     print(f"An unexpected error occurred: {e}")
 
 # For each model config, train model (and prompt too)
-for config in configs:
+
+# TODO: Remove this array after
+best_epochs = [
+    "checkpoint_epoch_1.pth",
+    "checkpoint_epoch_3.pth",
+    "checkpoint_epoch_3.pth",
+    "checkpoint_epoch_2.pth",
+    "checkpoint_epoch_3.pth",
+    "checkpoint_epoch_5.pth"
+]
+
+for i, config in enumerate(configs):
 
     BATCH_SIZE = config["BATCH_SIZE"]
     EPOCHS = config["EPOCHS"]
@@ -374,6 +385,9 @@ for config in configs:
     N_HEADS = config["N_HEADS"]
 
     name = f"Epochs_{EPOCHS}_Batch_Size_{BATCH_SIZE}_Temp_{TEMPERATURE}_Learning_{LEARNING_RATE}_Layers_{NUM_LAYERS}_Dropout_{DROPOUT}"
+
+    best_e = best_epochs[i]
+    model_path = f"{name}/{best_e}"
 
     transformer_model = TransformerEDLanguageModel(
         vocab_size=VOCAB_SIZE,
@@ -392,7 +406,7 @@ for config in configs:
     else:
         print("Loading old weights...")
         try:
-            transformer_model.load_state_dict(torch.load(old_model))
+            transformer_model.load_state_dict(torch.load(model_path))
         except FileNotFoundError:
             print("Model Not Found")
 
@@ -415,3 +429,8 @@ for config in configs:
             os.makedirs(os.path.dirname(out_path), exist_ok=True)
 
             prompt_model(transformer_model, tokenizer, fw, in_path, out_path)
+
+
+
+# Use old models for each config
+
