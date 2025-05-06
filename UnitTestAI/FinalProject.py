@@ -49,9 +49,7 @@ TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX + ".model"
 PAD_TOKEN_ID = 5
 
 VOCAB_SIZE = 7017
-MAX_TRAIN_SEQ_LEN = 1024
 MAX_GEN_SEQ_LEN = 1024
-
 
 #MODIFIABLE CONSTANTS FOR MODEL TRAINING START HERE
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -70,6 +68,7 @@ HIDDEN_DIM = 256
 NUM_LAYERS = 4
 DROPOUT = .2
 N_HEADS = 8
+MAX_TRAIN_SEQ_LEN = 1024
 
 # Constants for model prompting
 MODEL_INPUT_DIR = "./ModelInputCode"
@@ -107,7 +106,7 @@ def train_model(model, device, tokenizer, model_type=""):
     """
 
     save_directory_name_base = "./TrainingSaves/"
-    model_name =f"Epochs_{EPOCHS}_Batch_Size_{BATCH_SIZE}_Temp_{TEMPERATURE}_Learning_{LEARNING_RATE}_Layers_{NUM_LAYERS}_Dropout_{DROPOUT}"
+    model_name =f"Epochs_{EPOCHS}_Batch_Size_{BATCH_SIZE}_Temp_{TEMPERATURE}_Learning_{LEARNING_RATE}_Layers_{NUM_LAYERS}_Dropout_{DROPOUT}_Max_Sequence_Length_{MAX_TRAIN_SEQ_LEN}"
     try:
         os.mkdir(save_directory_name_base+model_name)
         print(f"Directory '{save_directory_name_base+model_name}' created successfully.")
@@ -372,6 +371,7 @@ for config in configs:
     NUM_LAYERS = config["NUM_LAYERS"]
     DROPOUT = float(config["DROPOUT"])
     N_HEADS = config["N_HEADS"]
+    MAX_TRAIN_SEQ_LEN = config["MAX_TRAIN_SEQ_LEN"]
 
     transformer_model = TransformerEDLanguageModel(
         vocab_size=VOCAB_SIZE,
