@@ -342,14 +342,14 @@ device = torch.device(DEVICE)
 tokenizer.load()
 
 # Sanity Check:
-ids = tokenizer.encode("def my_func(lalala: str) -> List[int]:\n    print(\"foo bar\")\n    return [3, 1, 4, 1, 5, 9]")
-code = tokenizer.decode(ids)
-print(code)
-
-print("piece size: ", tokenizer.get_piece_size(), " and vocab size: ", tokenizer.sp.vocab_size())
-
-for i in range(10):
-    print(tokenizer.sp.IdToPiece(i))
+# ids = tokenizer.encode("def my_func(lalala: str) -> List[int]:\n    print(\"foo bar\")\n    return [3, 1, 4, 1, 5, 9]")
+# code = tokenizer.decode(ids)
+# print(code)
+#
+# print("piece size: ", tokenizer.get_piece_size(), " and vocab size: ", tokenizer.sp.vocab_size())
+#
+# for i in range(10):
+#     print(tokenizer.sp.IdToPiece(i))
 
 try:
     with open('config.json', 'r') as file:
@@ -361,13 +361,7 @@ except json.JSONDecodeError:
 except Exception as e:
     print(f"An unexpected error occurred: {e}")
 
-# For each model config, train model (and prompt too)
-
-# TODO: Remove this array after
-best_epochs = [
-    "TrainLoss_1.8581_TestLoss_1.8492_Perplexity_6.4117_BLEU_0.2344.pth"
-]
-
+# For each model config, train model
 for i, config in enumerate(configs):
 
     BATCH_SIZE = config["BATCH_SIZE"]
@@ -386,8 +380,8 @@ for i, config in enumerate(configs):
     name = f"Epochs_{EPOCHS}_Batch_Size_{BATCH_SIZE}_Temp_{TEMPERATURE}_Learning_{LEARNING_RATE}_Layers_{NUM_LAYERS}_Dropout_{DROPOUT}"
     print(f"Doing model... \'{name}\'")
 
-    best_e = best_epochs[i]
-    model_path = f"./TrainingSaves/{name}/{best_e}"
+    # best_e = best_epochs[i]
+    # model_path = f"./TrainingSaves/{name}/{best_e}"
 
     transformer_model = TransformerEDLanguageModel(
         vocab_size=VOCAB_SIZE,

@@ -3,8 +3,8 @@ import os
 
 import torch
 
-from FinalProject import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, transformer_model, prompt_model, tokenizer
-from FinalProjModels import TestFrameworkType
+from FinalProject import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, transformer_model, prompt_model, tokenizer, device
+from FinalProjModels import TestFrameworkType, TransformerEDLanguageModel
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
@@ -41,29 +41,29 @@ old_model_paths = [
 # TRANSFORMER ED
 
 def gen_unit_tests_per_model(path):
-    for config in configs:
-        BATCH_SIZE = config["BATCH_SIZE"]
-        EPOCHS = config["EPOCHS"]
-        LEARNING_RATE = float(config["LEARNING_RATE"])
-        TEMPERATURE = float(config["TEMPERATURE"])
-        EARLY_EPOCH_STOP = config["EARLY_EPOCH_STOP"]
-        EPOCHS_PER_SAVE = config["EPOCHS_PER_SAVE"]
-        EMBED_DIM = config["EMBED_DIM"]
-        HIDDEN_DIM = config["HIDDEN_DIM"]
-        NUM_LAYERS = config["NUM_LAYERS"]
-        DROPOUT = float(config["DROPOUT"])
-        N_HEADS = config["N_HEADS"]
+    # for config in configs:
+    #     BATCH_SIZE = config["BATCH_SIZE"]
+    #     EPOCHS = config["EPOCHS"]
+    #     LEARNING_RATE = float(config["LEARNING_RATE"])
+    #     TEMPERATURE = float(config["TEMPERATURE"])
+    #     EARLY_EPOCH_STOP = config["EARLY_EPOCH_STOP"]
+    #     EPOCHS_PER_SAVE = config["EPOCHS_PER_SAVE"]
+    #     EMBED_DIM = config["EMBED_DIM"]
+    #     HIDDEN_DIM = config["HIDDEN_DIM"]
+    #     NUM_LAYERS = config["NUM_LAYERS"]
+    #     DROPOUT = float(config["DROPOUT"])
+    #     N_HEADS = config["N_HEADS"]
 
-        transformer_model = TransformerEDLanguageModel(
-            vocab_size=VOCAB_SIZE,
-            embed_dim=EMBED_DIM,
-            enc_num_layers=NUM_LAYERS,
-            dec_num_layers=NUM_LAYERS,
-            n_heads=N_HEADS,
-            dropout=DROPOUT,
-            pad_token_id=PAD_TOKEN_ID,
-            seq_len=MAX_TRAIN_SEQ_LEN,
-            name="Transformer Encoder-Decoder"
-        ).to(device)
+    transformer_model = TransformerEDLanguageModel(
+        # vocab_size=VOCAB_SIZE,
+        # embed_dim=EMBED_DIM,
+        # enc_num_layers=NUM_LAYERS,
+        # dec_num_layers=NUM_LAYERS,
+        # n_heads=N_HEADS,
+        # dropout=DROPOUT,
+        # pad_token_id=PAD_TOKEN_ID,
+        # seq_len=MAX_TRAIN_SEQ_LEN,
+        # name="Transformer Encoder-Decoder"
+    ).to(device)
 
     transformer_model.load_state_dict(torch.load(path))
