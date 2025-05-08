@@ -1,48 +1,6 @@
 [
 	{
-		"BATCH_SIZE": 32,
-		"EPOCHS": 3,
-		"LEARNING_RATE": ".002",
-		"TEMPERATURE": ".9",
-		"EARLY_EPOCH_STOP": 2,
-		"EPOCHS_PER_SAVE": 1,
-		"EMBED_DIM": 128,
-		"HIDDEN_DIM": 256,
-		"NUM_LAYERS": 4,
-		"DROPOUT": ".2",
-		"N_HEADS": 8,
-		"MAX_TRAIN_SEQ_LEN": 4096
-	},
-	{
-		"BATCH_SIZE": 32,
-		"EPOCHS": 3,
-		"LEARNING_RATE": ".004",
-		"TEMPERATURE": ".8",
-		"EARLY_EPOCH_STOP": 2,
-		"EPOCHS_PER_SAVE": 1,
-		"EMBED_DIM": 128,
-		"HIDDEN_DIM": 256,
-		"NUM_LAYERS": 4,
-		"DROPOUT": ".2",
-		"N_HEADS": 8,
-		"MAX_TRAIN_SEQ_LEN": 4096
-	},
-	{
-		"BATCH_SIZE": 32,
-		"EPOCHS": 3,
-		"LEARNING_RATE": ".001",
-		"TEMPERATURE": "1.1",
-		"EARLY_EPOCH_STOP": 2,
-		"EPOCHS_PER_SAVE": 1,
-		"EMBED_DIM": 128,
-		"HIDDEN_DIM": 256,
-		"NUM_LAYERS": 4,
-		"DROPOUT": ".2",
-		"N_HEADS": 8,
-		"MAX_TRAIN_SEQ_LEN": 4096
-	},
-	{
-		"BATCH_SIZE": 32,
+		"BATCH_SIZE": 64,
 		"EPOCHS": 6,
 		"LEARNING_RATE": ".002",
 		"TEMPERATURE": ".9",
@@ -53,10 +11,10 @@
 		"NUM_LAYERS": 4,
 		"DROPOUT": ".2",
 		"N_HEADS": 8,
-		"MAX_TRAIN_SEQ_LEN": 4096
+		"MAX_TRAIN_SEQ_LEN": 2048
 	},
 	{
-		"BATCH_SIZE": 32,
+		"BATCH_SIZE": 64,
 		"EPOCHS": 6,
 		"LEARNING_RATE": ".002",
 		"TEMPERATURE": ".8",
@@ -67,10 +25,10 @@
 		"NUM_LAYERS": 4,
 		"DROPOUT": ".3",
 		"N_HEADS": 8,
-		"MAX_TRAIN_SEQ_LEN": 4096
+		"MAX_TRAIN_SEQ_LEN": 2048
 	},
 	{
-		"BATCH_SIZE": 32,
+		"BATCH_SIZE": 64,
 		"EPOCHS": 6,
 		"LEARNING_RATE": ".001",
 		"TEMPERATURE": "1.1",
@@ -81,10 +39,10 @@
 		"NUM_LAYERS": 4,
 		"DROPOUT": ".2",
 		"N_HEADS": 8,
-		"MAX_TRAIN_SEQ_LEN": 4096
+		"MAX_TRAIN_SEQ_LEN": 2048
 	},
 	{
-		"BATCH_SIZE": 32,
+		"BATCH_SIZE": 64,
 		"EPOCHS": 12,
 		"LEARNING_RATE": ".002",
 		"TEMPERATURE": ".9",
@@ -95,10 +53,10 @@
 		"NUM_LAYERS": 4,
 		"DROPOUT": ".2",
 		"N_HEADS": 8,
-		"MAX_TRAIN_SEQ_LEN": 4096
+		"MAX_TRAIN_SEQ_LEN": 2048
 	},
 	{
-		"BATCH_SIZE": 32,
+		"BATCH_SIZE": 64,
 		"EPOCHS": 12,
 		"LEARNING_RATE": ".004",
 		"TEMPERATURE": ".9",
@@ -109,20 +67,6 @@
 		"NUM_LAYERS": 4,
 		"DROPOUT": ".3",
 		"N_HEADS": 8,
-		"MAX_TRAIN_SEQ_LEN": 4096
-	},
-	{
-		"BATCH_SIZE": 32,
-		"EPOCHS": 15,
-		"LEARNING_RATE": ".002",
-		"TEMPERATURE": "1.1",
-		"EARLY_EPOCH_STOP": 2,
-		"EPOCHS_PER_SAVE": 1,
-		"EMBED_DIM": 128,
-		"HIDDEN_DIM": 256,
-		"NUM_LAYERS": 4,
-		"DROPOUT": ".3",
-		"N_HEADS": 8,
-		"MAX_TRAIN_SEQ_LEN": 4096
+		"MAX_TRAIN_SEQ_LEN": 2048
 	}
 ]
