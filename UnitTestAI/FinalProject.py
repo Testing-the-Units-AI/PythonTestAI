@@ -1,7 +1,7 @@
 import argparse
 from FinalProjHelper import *
 from FinalProjModels import TransformerEDLanguageModel, TestFrameworkType
-from MakeModelPlots import plotLossOverEpochs
+# from MakeModelPlots import plotLossOverEpochs
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -237,7 +237,7 @@ def train_model(model, device, tokenizer, model_type=""):
 
     print(f"Epoch {epoch + 1}: Train Loss={avg_train_loss:.4f}, Test Loss={avg_test_loss:.4f}")
     print(f"Model Perplexity: {Perplexity(avg_train_loss):.4f} Model BLEU: {BLEU(model, tokenizer, test_loader):.4f}")
-    plotLossOverEpochs(len(train_losses), train_losses, test_losses, model_name, model_type)
+    # plotLossOverEpochs(len(train_losses), train_losses, test_losses, model_name, model_type)
 
     return train_losses, test_losses
 
@@ -329,7 +329,7 @@ def prompt_model(model, tokenizer, test_framework: TestFrameworkType, input_file
 
     if output_file is not None:
         with open(output_file, "w") as outfile:
-            outfile.write(f"# Generated Unit Test for {input_file} using {test_framework}:\n\n")
+            outfile.write(f"# Generated Unit Test using {model.name} for {input_file} using {test_framework}:\n\n")
             outfile.write(generated_test + "\n")
 
     return generated_test
@@ -363,7 +363,14 @@ except json.JSONDecodeError:
 except Exception as e:
     print(f"An unexpected error occurred: {e}")
 
-for config in configs:
+# For each model config, train model (and prompt too)
+
+# TODO: Remove this array after
+best_epochs = [
+    "TrainLoss_1.8581_TestLoss_1.8492_Perplexity_6.4117_BLEU_0.2344.pth"
+]
+
+for i, config in enumerate(configs):
 
     BATCH_SIZE = config["BATCH_SIZE"]
     EPOCHS = config["EPOCHS"]
@@ -378,6 +385,12 @@ for config in configs:
     N_HEADS = config["N_HEADS"]
     MAX_TRAIN_SEQ_LEN = config["MAX_TRAIN_SEQ_LEN"]
 
+    name = f"Epochs_{EPOCHS}_Batch_Size_{BATCH_SIZE}_Temp_{TEMPERATURE}_Learning_{LEARNING_RATE}_Layers_{NUM_LAYERS}_Dropout_{DROPOUT}"
+    print(f"Doing model... \'{name}\'")
+
+    best_e = best_epochs[i]
+    model_path = f"./TrainingSaves/{name}/{best_e}"
+
     transformer_model = TransformerEDLanguageModel(
         vocab_size=VOCAB_SIZE,
         embed_dim=EMBED_DIM,
@@ -387,14 +400,39 @@ for config in configs:
         dropout=DROPOUT,
         pad_token_id=PAD_TOKEN_ID,
         seq_len=MAX_TRAIN_SEQ_LEN,
-        name="Transformer Encoder-Decoder"
+        name=f"Transformer Encoder-Decoder ({name})"
     ).to(device)
 
     if train_new_model:
         train_model(transformer_model, device, tokenizer, transformer_model.name)
     else:
-        print("Loading old weights...")
+        print(f"Loading old weights from \'{model_path}\'")
         try:
-            transformer_model.load_state_dict(torch.load(old_model))
+            transformer_model.load_state_dict(torch.load(model_path))
         except FileNotFoundError:
             print("Model Not Found")
+
+    # If input file given, use that; otherwise, read input files from special prompt directory
+
+    # Collect all relative file paths from MODEL_INPUT_DIR
+    file_paths = [
+        os.path.relpath(os.path.join(dirpath, filename), MODEL_INPUT_DIR)
+        for dirpath, _, filenames in os.walk(MODEL_INPUT_DIR)
+        for filename in filenames
+    ]
+
+    # For each one generate unit tests with both frameworks
+    framework_options = ['pytest', 'unittest']
+    for fw in framework_options:
+        for fp in file_paths:
+            in_path = os.path.join(MODEL_INPUT_DIR, fp)
+            out_path = os.path.join(MODEL_OUTPUT_DIR, f"{fw}_{fp}_{transformer_model.name}")
+
+            os.makedirs(os.path.dirname(out_path), exist_ok=True)
+
+            prompt_model(transformer_model, tokenizer, fw, in_path, out_path)
+
+
+
+# Use old models for each config
+
