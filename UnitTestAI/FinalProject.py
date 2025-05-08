@@ -3,6 +3,7 @@ from FinalProjHelper import *
 from FinalProjModels import TransformerEDLanguageModel, TestFrameworkType
 from MakeModelPlots import plotLossOverEpochs
 import torch
+import torch.optim as optim
 import torch.nn as nn
 import json
 from tqdm import tqdm
@@ -125,6 +126,7 @@ def train_model(model, device, tokenizer, model_type=""):
     test_loader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_fn)
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=EPOCHS)
 
     # Adding on a decaying learning rate to the optimizer
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=1, factor=0.5)
@@ -178,6 +180,9 @@ def train_model(model, device, tokenizer, model_type=""):
             optimizer.step()
 
             total_train_loss += loss.item()
+
+        # Need scheduler step updated every epoch but not every batch
+        scheduler.step()
 
         avg_train_loss = total_train_loss / len(train_loader)
         train_losses.append(avg_train_loss)

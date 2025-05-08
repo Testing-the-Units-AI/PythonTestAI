@@ -34,7 +34,7 @@ from FinalProjModels import TestFrameworkType
 
 
 # Tokenizer (don't train again)
-tokenizer = Tokenizer('bpe_model')
+tokenizer = Tokenizer('TokenizerModels/test')
 device = torch.device(DEVICE)
 tokenizer.load()
 
