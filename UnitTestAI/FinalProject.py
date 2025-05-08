@@ -55,7 +55,6 @@ MAX_GEN_SEQ_LEN = 1024
 #MODIFIABLE CONSTANTS FOR MODEL TRAINING START HERE
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-# prompt_model(transformer_model, tokenizer, transformer_model.name)
 BATCH_SIZE = 128
 EPOCHS = 15
 LEARNING_RATE = .002
@@ -74,7 +73,6 @@ MAX_TRAIN_SEQ_LEN = 1024
 # Constants for model prompting
 MODEL_INPUT_DIR = "./ModelInputCode"
 MODEL_OUTPUT_DIR = "./ModelOutputUnitTests"
-
 
 
 # IMPORTANT FUNCTIONS
