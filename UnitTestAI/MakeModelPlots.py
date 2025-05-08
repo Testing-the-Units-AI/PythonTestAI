@@ -30,14 +30,14 @@ def plotLossOverEpochs(epochs, train_loss, test_loss, model_name,  model_type=""
     plt.plot(x_range, test_loss, label="Testing Loss", color='orange')
 
     plt.legend()
-    plt.savefig(f"./ModelLossCurves/{model_name}.png", dpi = 1200)
+    plt.savefig(f"ModelLossCurves/{model_name}.png", dpi = 1200)
     plt.clf()
     plt.close()
 
 
 TLD ="TrainingSaves"
 
-saves = os.fsencode(f"TrainingSaves")
+saves = os.fsencode(TLD)
 models = os.listdir(saves)
 
 for model in models:
