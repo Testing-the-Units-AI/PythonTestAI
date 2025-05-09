@@ -193,7 +193,14 @@ def prompt_many_models(paths):
             layers,
             dropout
         ) = parse_path(p)
+
+        print("\n\n\n\n")
+
         model_name = f"Transformer {os.path.dirname(p)}"
+        print(f"Loaded these hypers: ", parse_path(p))
+
+        print("\n\n\n\n")
+
         # if model_config is None:
         #     print(f"Skipping {model_name}. No config seems to exist for it.")
         #     continue
@@ -208,7 +215,9 @@ def prompt_many_models(paths):
         ).to(device)
         print(f"Constructed model")
 
-        transformer_model.load_state_dict(torch.load(p))
+        state_dict: dict = torch.load(p)
+        print(state_dict.keys())
+        transformer_model.load_state_dict(state_dict)
         print(f"Loaded state dict: {transformer_model.name}")
 
         # Collect all relative file paths from MODEL_INPUT_DIR
