@@ -244,4 +244,5 @@ else:
 
 print(model_paths)
 
+print("Model dir btw: ", os.listdir(MODEL_INPUT_DIR))
 prompt_many_models(model_paths, get_configs(CONFIG_FILE))
