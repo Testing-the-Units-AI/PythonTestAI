@@ -248,6 +248,4 @@ else:
 
 print(model_paths)
 
-prompt_many_models(model_paths,
-                   # get_configs(CONFIG_FILE)
-                   [])
+prompt_many_models(model_paths)
