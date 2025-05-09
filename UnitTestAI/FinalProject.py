@@ -1,7 +1,7 @@
 import argparse
 from FinalProjHelper import *
 from FinalProjModels import TransformerEDLanguageModel, TestFrameworkType
-from MakeModelPlots import plotLossOverEpochs
+# from MakeModelPlots import plotLossOverEpochs
 import torch
 import torch.optim as optim
 import torch.nn as nn
@@ -17,7 +17,6 @@ from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_new_tokenizer', type=bool, default=False, help="Needed if no .model file in project root")
 parser.add_argument('--train_new_model', type=bool, default=False)
-parser.add_argument('--old_model_dir', type=str, default="", help="Needed if using old model save")
 parser.add_argument(
     '--framework', default='u', choices=['p', 'u'], help="Choose 'p' for pytest or 'u' for unittest (default: 'u')"
 )
@@ -27,7 +26,6 @@ args = parser.parse_args()
 
 train_new_tokenizer = getattr(args, "train_new_tokenizer", False)
 train_new_model = getattr(args, "train_new_model", False)
-old_model = getattr(args, "old_model_dir", "")
 framework: TestFrameworkType = "unittest" if getattr(args, "framework", None) == 'u' else "pytest"
 input_code_file = getattr(args, "input_code_file", None)
 output_test_file = getattr(args, "output_test_file", None)
@@ -40,41 +38,7 @@ print(f"  input_code_file     = {input_code_file}")
 print(f"  output_test_file    = {output_test_file}")
 
 # CONSTANTS
-
-TRAIN_FILE = 'data/all.jsonl'
-TEST_FILE = 'data/dataset.jsonl'
-TRAIN_TOKENIZER_FILE = 'data/dataset.jsonl'
-
-TOKENIZER_PREFIX = 'test'
-TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX + ".model"
-PAD_TOKEN_ID = 5
-
-VOCAB_SIZE = 7017
-MAX_GEN_SEQ_LEN = 1024
-
-#MODIFIABLE CONSTANTS FOR MODEL TRAINING START HERE
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
-# prompt_model(transformer_model, tokenizer, transformer_model.name)
-BATCH_SIZE = 128
-EPOCHS = 15
-LEARNING_RATE = .002
-# Dictates creativity of the model, < 1 more deterministic, > 1 more creative/stochastic, 1 is no change from base model.
-TEMPERATURE = .9
-TOP_K = 4
-EARLY_EPOCH_STOP = 2
-EPOCHS_PER_SAVE = 1
-EMBED_DIM = 128
-HIDDEN_DIM = 256
-NUM_LAYERS = 4
-DROPOUT = .2
-N_HEADS = 8
-MAX_TRAIN_SEQ_LEN = 1024
-
-# Constants for model prompting
-MODEL_INPUT_DIR = "./ModelInputCode"
-MODEL_OUTPUT_DIR = "./ModelOutputUnitTests"
-
+from FinalProjConstants import *
 
 
 # IMPORTANT FUNCTIONS
@@ -237,7 +201,7 @@ def train_model(model, device, tokenizer, model_type=""):
 
     print(f"Epoch {epoch + 1}: Train Loss={avg_train_loss:.4f}, Test Loss={avg_test_loss:.4f}")
     print(f"Model Perplexity: {Perplexity(avg_train_loss):.4f} Model BLEU: {BLEU(model, tokenizer, test_loader):.4f}")
-    plotLossOverEpochs(len(train_losses), train_losses, test_losses, model_name, model_type)
+    # plotLossOverEpochs(len(train_losses), train_losses, test_losses, model_name, model_type)
 
     return train_losses, test_losses
 
@@ -305,35 +269,6 @@ def BLEU(model, tokenizer, test_loader):
                              smoothing_function=smoothing_function)
     return bleu_score
 
-
-def prompt_model(model, tokenizer, test_framework: TestFrameworkType, input_file, output_file=None):
-    if input_file is None:
-        print("Must specify input through input file. Cannot input through CLI")
-        return
-
-    with open(input_file, "r") as infile:
-        prompt = infile.read().strip()
-
-    generated_test = model.generate(
-        tokenizer,
-        prompt,
-        test_framework,
-        max_seq_length=MAX_GEN_SEQ_LEN,
-        bos_token_id=BOS_TOKEN_ID,
-        eos_token_id=EOS_TOKEN_ID,
-        pad_token_id=PAD_TOKEN_ID,
-        temperature=TEMPERATURE,
-        top_k=TOP_K,
-        device=DEVICE
-    )
-
-    if output_file is not None:
-        with open(output_file, "w") as outfile:
-            outfile.write(f"# Generated Unit Test for {input_file} using {test_framework}:\n\n")
-            outfile.write(generated_test + "\n")
-
-    return generated_test
-
 # MAIN CODE
 tokenizer = Tokenizer(TOKENIZER_PREFIX)
 print('expected V size: ', VOCAB_SIZE)
@@ -344,14 +279,14 @@ device = torch.device(DEVICE)
 tokenizer.load()
 
 # Sanity Check:
-ids = tokenizer.encode("def my_func(lalala: str) -> List[int]:\n    print(\"foo bar\")\n    return [3, 1, 4, 1, 5, 9]")
-code = tokenizer.decode(ids)
-print(code)
-
-print("piece size: ", tokenizer.get_piece_size(), " and vocab size: ", tokenizer.sp.vocab_size())
-
-for i in range(10):
-    print(tokenizer.sp.IdToPiece(i))
+# ids = tokenizer.encode("def my_func(lalala: str) -> List[int]:\n    print(\"foo bar\")\n    return [3, 1, 4, 1, 5, 9]")
+# code = tokenizer.decode(ids)
+# print(code)
+#
+# print("piece size: ", tokenizer.get_piece_size(), " and vocab size: ", tokenizer.sp.vocab_size())
+#
+# for i in range(10):
+#     print(tokenizer.sp.IdToPiece(i))
 
 try:
     with open('config.json', 'r') as file:
@@ -363,7 +298,8 @@ except json.JSONDecodeError:
 except Exception as e:
     print(f"An unexpected error occurred: {e}")
 
-for config in configs:
+# For each model config, train model
+for i, config in enumerate(configs):
 
     BATCH_SIZE = config["BATCH_SIZE"]
     EPOCHS = config["EPOCHS"]
@@ -378,6 +314,9 @@ for config in configs:
     N_HEADS = config["N_HEADS"]
     MAX_TRAIN_SEQ_LEN = config["MAX_TRAIN_SEQ_LEN"]
 
+    name = f"Epochs_{EPOCHS}_Batch_Size_{BATCH_SIZE}_Temp_{TEMPERATURE}_Learning_{LEARNING_RATE}_Layers_{NUM_LAYERS}_Dropout_{DROPOUT}"
+    print(f"Doing model... \'{name}\'")
+
     transformer_model = TransformerEDLanguageModel(
         vocab_size=VOCAB_SIZE,
         embed_dim=EMBED_DIM,
@@ -387,14 +326,11 @@ for config in configs:
         dropout=DROPOUT,
         pad_token_id=PAD_TOKEN_ID,
         seq_len=MAX_TRAIN_SEQ_LEN,
-        name="Transformer Encoder-Decoder"
+        name=f"Transformer Encoder-Decoder ({name})"
     ).to(device)
 
-    if train_new_model:
-        train_model(transformer_model, device, tokenizer, transformer_model.name)
-    else:
-        print("Loading old weights...")
-        try:
-            transformer_model.load_state_dict(torch.load(old_model))
-        except FileNotFoundError:
-            print("Model Not Found")
+    train_model(transformer_model, device, tokenizer, transformer_model.name)
+
+    print(f"Successfully trained {transformer_model.name}")
+
+print("Successfully trained all models!")
