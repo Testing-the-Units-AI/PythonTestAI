@@ -11,6 +11,8 @@ from FinalProjConstants import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, MAX_GEN_SEQ_LE
 from FinalProjModels import TestFrameworkType, TransformerEDLanguageModel
 from FinalProjHelper import BOS_TOKEN_ID, EOS_TOKEN_ID, PAD_TOKEN_ID, Tokenizer
 
+print(f"TEST: print(device): {device}")
+
 # ARGUMENTS
 
 parser = argparse.ArgumentParser()
@@ -168,11 +170,10 @@ def prompt_model(model, model_config, tokenizer, test_framework: TestFrameworkTy
 
     return generated_test
 
-def prompt_many_models(paths, configs):
+def prompt_many_models(paths):
     """
     Prompts all the models specified in the arguments
     :param paths:
-    :param configs:
     :return:
     """
     # Load tokenizer (Same for all)
@@ -181,6 +182,7 @@ def prompt_many_models(paths, configs):
     print("Loaded tokenizer")
 
     for p in paths:
+        print(f"Trying to prompt model {os.path.relpath(p)}")
         # Config and construct model so we can use saved weights & biases
         # p has information about model config: dissect it so we can get right config using what we know
         (
@@ -204,6 +206,7 @@ def prompt_many_models(paths, configs):
             seq_len=MAX_TRAIN_SEQ_LEN,
             name=model_name
         ).to(device)
+        print(f"Constructed model")
 
         transformer_model.load_state_dict(torch.load(p))
         print(f"Loaded state dict: {transformer_model.name}")
