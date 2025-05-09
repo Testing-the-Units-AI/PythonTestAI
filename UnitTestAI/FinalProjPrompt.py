@@ -8,8 +8,8 @@ from typing import Literal, List
 
 from torch.nn.functional import dropout
 
-from FinalProjConstants import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, MAX_GEN_SEQ_LEN, TOP_K, DEVICE, TRAINING_SAVE_DIR, \
-    device, TOKENIZER_PREFIX, VOCAB_SIZE, MAX_TRAIN_SEQ_LEN, CONFIG_FILE
+from FinalProjConstants import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, MAX_TRAIN_SEQ_LEN, MAX_GEN_SEQ_LEN, TOP_K, DEVICE, TRAINING_SAVE_DIR, \
+    device, TOKENIZER_PREFIX, VOCAB_SIZE, CONFIG_FILE, MAX_TRAIN_SEQ_LEN
 from FinalProjModels import TestFrameworkType, TransformerEDLanguageModel
 from FinalProjHelper import BOS_TOKEN_ID, EOS_TOKEN_ID, PAD_TOKEN_ID, Tokenizer
 
@@ -78,28 +78,26 @@ def parse_path(path):
         value = tokens[i+1]
 
         if key == "epochs":
-            params["epochs"] = int(value)
+            params["EPOCHS"] = int(value)
         elif key == "batch":
-            params["batch_size"] = int(value)
+            params["BATCH_SIZE"] = int(value)
         elif key == "temp":
-            params["temperature"] = float(value)
+            params["TEMPERATURE"] = float(value)
         elif key == "learning":
-            params["learning_rate"] = float(value)
+            params["LEARNING_RATE"] = float(value)
         elif key == "layers":
-            params["layers"] = int(value)
+            params["NUM_LAYERS"] = int(value)
         elif key == "dropout":
-            params["dropout"] = float(value)
+            params["DROPOUT"] = float(value)
+        elif key == "maxsequencelength":
+            params["MAX_TRAIN_SEQ_LEN"] = int(value)
 
         i += 2  # Move to next pair
 
-    return (
-        params["epochs"],
-        params["batch_size"],
-        params["temperature"],
-        params["learning_rate"],
-        params["layers"],
-        params["dropout"]
-    )
+    if params["MAX_TRAIN_SEQ_LEN"] is None:
+        params["MAX_TRAIN_SEQ_LEN"] = MAX_TRAIN_SEQ_LEN
+
+    return params
 
 def dissect_config(path, configs: List[dict[str, str]]) -> dict[str, str] | None:
     """
@@ -109,21 +107,15 @@ def dissect_config(path, configs: List[dict[str, str]]) -> dict[str, str] | None
     :return:
     """
     # parse path for info
-    (
-        epochs,
-        batch_size,
-        temperature,
-        learning_rate,
-        layers,
-        dropout
-    ) = parse_path(path)
+    parsed_config = parse_path(path)
 
     # find right config from configs
     config = None
     for c in configs:
         # print("Checking against config:\n", json.dumps(c))
-        if int(c["EPOCHS"]) == epochs and int(c["BATCH_SIZE"]) == batch_size and float(c["TEMPERATURE"]) == temperature and float(c["LEARNING_RATE"]) == learning_rate and int(c["NUM_LAYERS"]) == layers and float(c["DROPOUT"]) == dropout:
+        if int(c["EPOCHS"]) == parsed_config["EPOCHS"] and int(c["BATCH_SIZE"]) == parsed_config["BATCH_SIZE"] and float(c["TEMPERATURE"]) == parsed_config["TEMPERATURE"] and float(c["LEARNING_RATE"]) == parsed_config["LEARNING_RATE"] and int(c["NUM_LAYERS"]) == parsed_config["NUM_LAYERS"] and float(c["DROPOUT"]) == parsed_config["DROPOUT"] and (parsed_config["MAX_TRAIN_SEQ_LEN"] and int(c["MAX_TRAIN_SEQ_LEN"]) == parsed_config["MAX_TRAIN_SEQ_LEN"]):
             config = c
+            print(f"Matched path: \"{path}\" to config: \"{config}\"")
             break
 
     return config
@@ -170,7 +162,7 @@ def prompt_model(model, model_config, tokenizer, test_framework: TestFrameworkTy
 
     return generated_test
 
-def prompt_many_models(paths):
+def prompt_many_models(paths, configs):
     """
     Prompts all the models specified in the arguments
     :param paths:
@@ -182,6 +174,7 @@ def prompt_many_models(paths):
     print("Loaded tokenizer")
 
     for p in paths:
+        model_config = dissect_config(p, configs)
         print(f"Trying to prompt model {os.path.relpath(p)}")
         # Config and construct model so we can use saved weights & biases
         # p has information about model config: dissect it so we can get right config using what we know
@@ -205,6 +198,9 @@ def prompt_many_models(paths):
         #     print(f"Skipping {model_name}. No config seems to exist for it.")
         #     continue
 
+        tsl = model_config["MAX_TRAIN_SEQ_LEN"]
+        train_seq_len = 1024 if tsl is None else tsl
+
         transformer_model = TransformerEDLanguageModel(
             vocab_size=VOCAB_SIZE,
             embed_dim=128, # always same
@@ -213,7 +209,7 @@ def prompt_many_models(paths):
             # dropout=dropout, # irrelevant for prompting
             pad_token_id=PAD_TOKEN_ID, #
             # n_heads=8, # always same
-            seq_len=1024, # not always same
+            seq_len=train_seq_len, # not always same
             name=model_name
         ).to(device)
         print(f"Constructed model")
@@ -260,4 +256,4 @@ else:
 
 print(model_paths)
 
-prompt_many_models(model_paths)
+prompt_many_models(model_paths, get_configs(CONFIG_FILE))
