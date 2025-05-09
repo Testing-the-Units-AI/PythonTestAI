@@ -184,6 +184,10 @@ def prompt_many_models(paths, configs):
         # Config and construct model so we can use saved weights & biases
         # p has information about model config: dissect it so we can get right config using what we know
         model_config = dissect_config(p, configs)
+        model_name = f"Transformer {os.path.dirname(p)}"
+        if model_config is None:
+            print(f"Skipping {model_name}. No config seems to exist for it.")
+            continue
 
         transformer_model = TransformerEDLanguageModel(
             vocab_size=VOCAB_SIZE,
@@ -191,8 +195,7 @@ def prompt_many_models(paths, configs):
             dec_num_layers=model_config["NUM_LAYERS"],
             pad_token_id=PAD_TOKEN_ID,
             seq_len=MAX_TRAIN_SEQ_LEN,
-            name=f"Transformer {os.path.dirname(p)}",
-
+            name=model_name
         ).to(device)
 
         transformer_model.load_state_dict(torch.load(p))
