@@ -123,6 +123,7 @@ def prompt_many_models(paths):
     # Load tokenizer (Same for all)
     tokenizer = Tokenizer(TOKENIZER_PREFIX).load()
 
+    print("Loaded tokenizer")
     for p in paths:
         # Need config?
         # (
@@ -152,6 +153,7 @@ def prompt_many_models(paths):
         ).to(device)
 
         model.load_state_dict(torch.load(p))
+        print("Didn't need shit for transformer load. Loaded state dict")
 
         # Collect all relative file paths from MODEL_INPUT_DIR
         for inp in os.listdir(MODEL_INPUT_DIR):
@@ -160,10 +162,11 @@ def prompt_many_models(paths):
 
                 # Prompt for each input
                 now = time.time()
-                # FIXME: GEt to this
                 fws = []
                 for fw in fws:
-                    prompt_model(model, tokenizer, framework, input_file, f"{MODEL_OUTPUT_DIR}/{fw}_for_{input_file}_at_{now.hex()}")
+                    out_file = f"{MODEL_OUTPUT_DIR}/{fw}_for_{input_file}_at_{now.hex()}"
+                    print(f"Would do prompt_model({model}, {tokenizer}, {framework}, {input_file}, {out_file})")
+                    # prompt_model(model, tokenizer, framework, input_file, out_file)
 
 # MAIN CODE
 
