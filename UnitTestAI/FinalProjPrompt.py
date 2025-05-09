@@ -6,7 +6,7 @@ import os
 from typing import Literal
 
 from FinalProjConstants import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, MAX_GEN_SEQ_LEN, TOP_K, DEVICE, TRAINING_SAVE_DIR, \
-    device, TEMPERATURE, TOKENIZER_PREFIX
+    device, TEMPERATURE, TOKENIZER_PREFIX, VOCAB_SIZE
 from FinalProjModels import TestFrameworkType, TransformerEDLanguageModel
 from FinalProjHelper import BOS_TOKEN_ID, EOS_TOKEN_ID, PAD_TOKEN_ID, Tokenizer
 
@@ -28,13 +28,13 @@ match (getattr(args, 'framework', None)):
     case _: framework = 'both'
 model_input_dir = getattr(args, "model_input_dir", None)
 model_output_dir = getattr(args, "model_output_dir", None)
-model: Literal['all'] | str = getattr(args, "model", None)
+model_path: Literal['all'] | str = getattr(args, "model", None)
 
 print(f"Running script with:")
 print(f"  framework           = {framework}")
 print(f"  model_input_dir     = {model_input_dir}")
 print(f"  model_output_dir    = {model_output_dir}")
-print(f"  model               = {model}")
+print(f"  model_path          = {model_path}")
 
 # FUNCTIONS
 
@@ -119,7 +119,8 @@ def prompt_many_models(paths):
     :return:
     """
     # Load tokenizer (Same for all)
-    tokenizer = Tokenizer(TOKENIZER_PREFIX).load()
+    tokenizer = Tokenizer(TOKENIZER_PREFIX)
+    tokenizer.load()
 
     print("Loaded tokenizer")
     for p in paths:
@@ -138,7 +139,8 @@ def prompt_many_models(paths):
         #     DROPOUT
         # ) = get_config(config_file)
 
-        model = TransformerEDLanguageModel(
+        transformer_model = TransformerEDLanguageModel(
+            vocab_size=VOCAB_SIZE
             # vocab_size=VOCAB_SIZE,
             # embed_dim=EMBED_DIM,
             # enc_num_layers=NUM_LAYERS,
@@ -150,7 +152,7 @@ def prompt_many_models(paths):
             # name="Transformer Encoder-Decoder"
         ).to(device)
 
-        model.load_state_dict(torch.load(p))
+        transformer_model.load_state_dict(torch.load(p))
         print("Didn't need shit for transformer load. Loaded state dict")
 
         # Collect all relative file paths from MODEL_INPUT_DIR
@@ -163,7 +165,7 @@ def prompt_many_models(paths):
                 fws = []
                 for fw in fws:
                     out_file = f"{MODEL_OUTPUT_DIR}/{fw}_for_{input_file}_at_{now.hex()}"
-                    print(f"Would do prompt_model({model}, {tokenizer}, {framework}, {input_file}, {out_file})")
+                    print(f"Would do prompt_model({transformer_model}, {tokenizer}, {framework}, {input_file}, {out_file})")
                     # prompt_model(model, tokenizer, framework, input_file, out_file)
 
 # MAIN CODE
@@ -171,8 +173,8 @@ def prompt_many_models(paths):
 # Collect paths for models from args
 
 # For each subdir in TrainingSaves/ we're going to look at the most recent epoch (alphabetically first, by luck) and append to paths
-paths = []
-if model == 'all':
+model_paths = []
+if model_path == 'all':
     for subdir in os.listdir(TRAINING_SAVE_DIR):
         subdir_path = os.path.join(TRAINING_SAVE_DIR, subdir)
         if os.path.isdir(subdir_path):
@@ -181,15 +183,15 @@ if model == 'all':
                 latest_ckpt = checkpoints[0]  # alphabetically first because capitalized
                 full_ckpt_path = os.path.join(subdir_path, latest_ckpt)
                 rel_path = os.path.relpath(full_ckpt_path, TRAINING_SAVE_DIR)
-                paths.append(rel_path)
-    paths = sorted(paths)
+                model_paths.append(rel_path)
+    model_paths = sorted(model_paths)
 
 else:
-    paths.append(model)
+    model_paths.append(model_path)
 
-print(paths)
+print(model_paths)
 
 # Prompt models and save output
 
-prompt_many_models(paths)
+prompt_many_models(model_paths)
 
