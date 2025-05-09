@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.7657_TestLoss_1.8896_Perplexity_5.8458_BLEU_0.2127.pth for ./ModelInputCode/prompt6.py using pytest:
+
+<PYTEST> def test_add_to_list ( self , dummy_list ) : 
+     assert dummy_to_list . add_list

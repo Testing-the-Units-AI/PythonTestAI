@@ -9,7 +9,7 @@ TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX + ".model"
 PAD_TOKEN_ID = 5
 
 VOCAB_SIZE = 7017
-MAX_GEN_SEQ_LEN = 1024
+MAX_GEN_SEQ_LEN = 2048
 
 #MODIFIABLE CONSTANTS FOR MODEL TRAINING START HERE
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"

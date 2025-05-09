@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.7657_TestLoss_1.8896_Perplexity_5.8458_BLEU_0.2127.pth for ./ModelInputCode/prompt6.py using unittest:
+
+<UNITTEST> def test_parse_hot_key_list ( self ) : 
+     self . assertEqual ( key2 . get_hotkey_

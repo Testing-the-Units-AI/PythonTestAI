@@ -1,0 +1,5 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.7657_TestLoss_1.8896_Perplexity_5.8458_BLEU_0.2127.pth for ./ModelInputCode/prompt1.py using unittest:
+
+<UNITTEST> def test_get_user_info ( self ) : 
+     """ Tests_info ( 'Test' ) 
+     self . assertEqual (

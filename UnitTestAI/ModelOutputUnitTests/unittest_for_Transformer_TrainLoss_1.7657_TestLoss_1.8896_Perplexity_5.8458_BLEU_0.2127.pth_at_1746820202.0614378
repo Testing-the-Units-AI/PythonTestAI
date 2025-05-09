@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.7657_TestLoss_1.8896_Perplexity_5.8458_BLEU_0.2127.pth for ./ModelInputCode/prompt3.py using unittest:
+
+<UNITTEST> def test_get_d_f_f ( self ) : 
+     """ Test the get_f_f_f_f_f

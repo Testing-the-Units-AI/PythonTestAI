@@ -8,8 +8,7 @@ from typing import Literal, List
 
 from torch.nn.functional import dropout
 
-from FinalProjConstants import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, MAX_GEN_SEQ_LEN, TOP_K, DEVICE, TRAINING_SAVE_DIR, \
-    device, TOKENIZER_PREFIX, VOCAB_SIZE, CONFIG_FILE, MAX_TRAIN_SEQ_LEN, EMBED_DIM
+from FinalProjConstants import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, MAX_GEN_SEQ_LEN, TOP_K, DEVICE, device, TRAINING_SAVE_DIR, TOKENIZER_PREFIX, VOCAB_SIZE, CONFIG_FILE, MAX_TRAIN_SEQ_LEN, EMBED_DIM
 from FinalProjModels import TestFrameworkType, TransformerEDLanguageModel
 from FinalProjHelper import BOS_TOKEN_ID, EOS_TOKEN_ID, PAD_TOKEN_ID, Tokenizer
 
@@ -201,7 +200,7 @@ def prompt_many_models(paths, configs):
         ).to(device)
         # print(f"Constructed model")
 
-        state_dict: dict = torch.load(p)
+        state_dict: dict = torch.load(p, map_location=torch.device('mps'))
         # print(state_dict.keys())
         transformer_model.load_state_dict(state_dict)
         print(f"Loaded state dict: {transformer_model.name}")
