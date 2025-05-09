@@ -17,7 +17,6 @@ from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
 parser = argparse.ArgumentParser()
 parser.add_argument('--train_new_tokenizer', type=bool, default=False, help="Needed if no .model file in project root")
 parser.add_argument('--train_new_model', type=bool, default=False)
-parser.add_argument('--old_model_dir', type=str, default="", help="Needed if using old model save")
 parser.add_argument(
     '--framework', default='u', choices=['p', 'u'], help="Choose 'p' for pytest or 'u' for unittest (default: 'u')"
 )
@@ -27,7 +26,6 @@ args = parser.parse_args()
 
 train_new_tokenizer = getattr(args, "train_new_tokenizer", False)
 train_new_model = getattr(args, "train_new_model", False)
-old_model = getattr(args, "old_model_dir", "")
 framework: TestFrameworkType = "unittest" if getattr(args, "framework", None) == 'u' else "pytest"
 input_code_file = getattr(args, "input_code_file", None)
 output_test_file = getattr(args, "output_test_file", None)
@@ -40,39 +38,7 @@ print(f"  input_code_file     = {input_code_file}")
 print(f"  output_test_file    = {output_test_file}")
 
 # CONSTANTS
-
-TRAIN_FILE = 'data/all.jsonl'
-TEST_FILE = 'data/dataset.jsonl'
-TRAIN_TOKENIZER_FILE = 'data/dataset.jsonl'
-
-TOKENIZER_PREFIX = 'test'
-TOKENIZER_PATH = "./TokenizerModels/" + TOKENIZER_PREFIX + ".model"
-PAD_TOKEN_ID = 5
-
-VOCAB_SIZE = 7017
-MAX_GEN_SEQ_LEN = 1024
-
-#MODIFIABLE CONSTANTS FOR MODEL TRAINING START HERE
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-
-BATCH_SIZE = 128
-EPOCHS = 15
-LEARNING_RATE = .002
-# Dictates creativity of the model, < 1 more deterministic, > 1 more creative/stochastic, 1 is no change from base model.
-TEMPERATURE = .9
-TOP_K = 4
-EARLY_EPOCH_STOP = 2
-EPOCHS_PER_SAVE = 1
-EMBED_DIM = 128
-HIDDEN_DIM = 256
-NUM_LAYERS = 4
-DROPOUT = .2
-N_HEADS = 8
-MAX_TRAIN_SEQ_LEN = 1024
-
-# Constants for model prompting
-MODEL_INPUT_DIR = "./ModelInputCode"
-MODEL_OUTPUT_DIR = "./ModelOutputUnitTests"
+from FinalProjConstants import *
 
 
 # IMPORTANT FUNCTIONS
@@ -303,35 +269,6 @@ def BLEU(model, tokenizer, test_loader):
                              smoothing_function=smoothing_function)
     return bleu_score
 
-
-def prompt_model(model, tokenizer, test_framework: TestFrameworkType, input_file, output_file=None):
-    if input_file is None:
-        print("Must specify input through input file. Cannot input through CLI")
-        return
-
-    with open(input_file, "r") as infile:
-        prompt = infile.read().strip()
-
-    generated_test = model.generate(
-        tokenizer,
-        prompt,
-        test_framework,
-        max_seq_length=MAX_GEN_SEQ_LEN,
-        bos_token_id=BOS_TOKEN_ID,
-        eos_token_id=EOS_TOKEN_ID,
-        pad_token_id=PAD_TOKEN_ID,
-        temperature=TEMPERATURE,
-        top_k=TOP_K,
-        device=DEVICE
-    )
-
-    if output_file is not None:
-        with open(output_file, "w") as outfile:
-            outfile.write(f"# Generated Unit Test using {model.name} for {input_file} using {test_framework}:\n\n")
-            outfile.write(generated_test + "\n")
-
-    return generated_test
-
 # MAIN CODE
 tokenizer = Tokenizer(TOKENIZER_PREFIX)
 print('expected V size: ', VOCAB_SIZE)
@@ -380,9 +317,6 @@ for i, config in enumerate(configs):
     name = f"Epochs_{EPOCHS}_Batch_Size_{BATCH_SIZE}_Temp_{TEMPERATURE}_Learning_{LEARNING_RATE}_Layers_{NUM_LAYERS}_Dropout_{DROPOUT}"
     print(f"Doing model... \'{name}\'")
 
-    # best_e = best_epochs[i]
-    # model_path = f"./TrainingSaves/{name}/{best_e}"
-
     transformer_model = TransformerEDLanguageModel(
         vocab_size=VOCAB_SIZE,
         embed_dim=EMBED_DIM,
@@ -395,36 +329,8 @@ for i, config in enumerate(configs):
         name=f"Transformer Encoder-Decoder ({name})"
     ).to(device)
 
-    if train_new_model:
-        train_model(transformer_model, device, tokenizer, transformer_model.name)
-    else:
-        print(f"Loading old weights from \'{model_path}\'")
-        try:
-            transformer_model.load_state_dict(torch.load(model_path))
-        except FileNotFoundError:
-            print("Model Not Found")
+    train_model(transformer_model, device, tokenizer, transformer_model.name)
 
-    # If input file given, use that; otherwise, read input files from special prompt directory
+    print(f"Successfully trained {transformer_model.name}")
 
-    # Collect all relative file paths from MODEL_INPUT_DIR
-    file_paths = [
-        os.path.relpath(os.path.join(dirpath, filename), MODEL_INPUT_DIR)
-        for dirpath, _, filenames in os.walk(MODEL_INPUT_DIR)
-        for filename in filenames
-    ]
-
-    # For each one generate unit tests with both frameworks
-    framework_options = ['pytest', 'unittest']
-    for fw in framework_options:
-        for fp in file_paths:
-            in_path = os.path.join(MODEL_INPUT_DIR, fp)
-            out_path = os.path.join(MODEL_OUTPUT_DIR, f"{fw}_{fp}_{transformer_model.name}")
-
-            os.makedirs(os.path.dirname(out_path), exist_ok=True)
-
-            prompt_model(transformer_model, tokenizer, fw, in_path, out_path)
-
-
-
-# Use old models for each config
-
+print("Successfully trained all models!")

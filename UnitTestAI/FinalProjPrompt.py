@@ -1,69 +1,194 @@
 import argparse
-import os
+import time
 
 import torch
+import os
+from typing import List, Literal
 
-from FinalProject import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, transformer_model, prompt_model, tokenizer, device
+from FinalProjConstants import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, MAX_GEN_SEQ_LEN, TOP_K, DEVICE, TRAINING_SAVE_DIR, \
+    device, TEMPERATURE
 from FinalProjModels import TestFrameworkType, TransformerEDLanguageModel
+from FinalProjHelper import BOS_TOKEN_ID, EOS_TOKEN_ID, PAD_TOKEN_ID
+from UnitTestAI.FinalProjConstants import TOKENIZER_PREFIX
+from UnitTestAI.FinalProjHelper import Tokenizer
+
+# ARGUMENTS
 
 parser = argparse.ArgumentParser()
+parser.add_argument('--model_input_dir', default=MODEL_INPUT_DIR, help=f"Which directory has the code files for the model input?\n(Defaults to {MODEL_INPUT_DIR}): ")
+parser.add_argument('--model_output_dir', default=MODEL_OUTPUT_DIR, help=f"Where do you want to output tests from the model?\n(Defaults to {MODEL_OUTPUT_DIR}): ")
 parser.add_argument(
-    '--framework', default='u', choices=['p', 'u'], help="Choose 'p' for pytest or 'u' for unittest (default: 'u')"
+    '--framework', default='b', choices=['p', 'u', 'b'], help="Choose 'p' for pytest, 'u' for unittest, or 'b' for both (Defaults to both): "
 )
-parser.add_argument('--input_code_file', default=None, help="Where do you want to get code to generate tests for?")
-parser.add_argument('--output_test_file', default=None, help="Where do you want to output tests?")
+parser.add_argument('--model', default='all', help="Path to model to use (Defaults to the most recent epoch for every configuration of hyperparameters): ")
 args = parser.parse_args()
 
-train_new_tokenizer = getattr(args, "train_new_tokenizer", False)
-train_new_model = getattr(args, "train_new_model", False)
-old_model = getattr(args, "old_model_dir", "")
-framework: TestFrameworkType = "unittest" if getattr(args, "framework", None) == 'u' else "pytest"
-input_code_file = getattr(args, "input_code_file", None)
-output_test_file = getattr(args, "output_test_file", None)
+framework: TestFrameworkType | Literal['both']
+match (getattr(args, 'framework', None)):
+    case 'p': framework = 'pytest'
+    case 'u': framework = 'unittest'
+    case _: framework = 'both'
+model_input_dir = getattr(args, "model_input_dir", None)
+model_output_dir = getattr(args, "model_output_dir", None)
+model: Literal['all'] | str = getattr(args, "model", None)
 
 print(f"Running script with:")
-print(f"  train_new_tokenizer = {train_new_tokenizer}")
-print(f"  train_new_model     = {train_new_model}")
 print(f"  framework           = {framework}")
-print(f"  input_code_file     = {input_code_file}")
-print(f"  output_test_file    = {output_test_file}")
+print(f"  model_input_dir     = {model_input_dir}")
+print(f"  model_output_dir    = {model_output_dir}")
+print(f"  model               = {model}")
 
+# FUNCTIONS
 
-old_model_paths = [
-    "Epochs_3_Batch_Size_128_Temp_0.8_Learning_0.004_Layers_4_Dropout_0.2/checkpoint_epoch_3.pth",
-    "Epochs_3_Batch_Size_128_Temp_0.9_Learning_0.002_Layers_4_Dropout_0.2/checkpoint_epoch_3.pth",
-    "Epochs_3_Batch_Size_128_Temp_1.1_Learning_0.001_Layers_4_Dropout_0.2/checkpoint_epoch_3.pth",
-    "Epochs_6_Batch_Size_128_Temp_0.8_Learning_0.002_Layers_4_Dropout_0.3/checkpoint_epoch_4.pth",
-    "Epochs_6_Batch_Size_128_Temp_1.1_Learning_0.001_Layers_4_Dropout_0.2/checkpoint_epoch_3.pth",
-    "Epochs_12_Batch_Size_128_Temp_0.9_Learning_0.002_Layers_4_Dropout_0.2/checkpoint_epoch_5.pth"
-]
+def get_config(config_file):
+    """
+    Function responsible for getting config information
+    :param config_file:
+    :return:
+    """
 
-# TRANSFORMER ED
+    LEARNING_RATE = float(config_file["LEARNING_RATE"])
+    EPOCHS = config_file["EPOCHS"]
+    BATCH_SIZE = config_file["BATCH_SIZE"]
+    TEMPERATURE = float(config_file["TEMPERATURE"])
+    EARLY_EPOCH_STOP = config_file["EARLY_EPOCH_STOP"]
+    EPOCHS_PER_SAVE = config_file["EPOCHS_PER_SAVE"]
+    EMBED_DIM = config_file["EMBED_DIM"]
+    HIDDEN_DIM = config_file["HIDDEN_DIM"]
+    N_HEADS = config_file["N_HEADS"]
+    NUM_LAYERS = config_file["NUM_LAYERS"]
+    DROPOUT = float(config_file["DROPOUT"])
 
-def gen_unit_tests_per_model(path):
-    # for config in configs:
-    #     BATCH_SIZE = config["BATCH_SIZE"]
-    #     EPOCHS = config["EPOCHS"]
-    #     LEARNING_RATE = float(config["LEARNING_RATE"])
-    #     TEMPERATURE = float(config["TEMPERATURE"])
-    #     EARLY_EPOCH_STOP = config["EARLY_EPOCH_STOP"]
-    #     EPOCHS_PER_SAVE = config["EPOCHS_PER_SAVE"]
-    #     EMBED_DIM = config["EMBED_DIM"]
-    #     HIDDEN_DIM = config["HIDDEN_DIM"]
-    #     NUM_LAYERS = config["NUM_LAYERS"]
-    #     DROPOUT = float(config["DROPOUT"])
-    #     N_HEADS = config["N_HEADS"]
+    return (
+        LEARNING_RATE,
+        EPOCHS,
+        BATCH_SIZE,
+        TEMPERATURE,
+        EARLY_EPOCH_STOP,
+        EPOCHS_PER_SAVE,
+        EMBED_DIM,
+        HIDDEN_DIM,
+        N_HEADS,
+        NUM_LAYERS,
+        DROPOUT
+    )
 
-    transformer_model = TransformerEDLanguageModel(
-        # vocab_size=VOCAB_SIZE,
-        # embed_dim=EMBED_DIM,
-        # enc_num_layers=NUM_LAYERS,
-        # dec_num_layers=NUM_LAYERS,
-        # n_heads=N_HEADS,
-        # dropout=DROPOUT,
-        # pad_token_id=PAD_TOKEN_ID,
-        # seq_len=MAX_TRAIN_SEQ_LEN,
-        # name="Transformer Encoder-Decoder"
-    ).to(device)
+def prompt_model(model, tokenizer, test_framework: TestFrameworkType, input_file, output_file):
+    """
+            Prompts a single model using the input code file
 
-    transformer_model.load_state_dict(torch.load(path))
+    :param model:
+    :param tokenizer:
+    :param test_framework:
+    :param input_file:
+    :param output_file:
+    :return:
+    """
+    if input_file is None:
+        print("Must specify input through input file. Cannot input through CLI")
+        return
+
+    with open(input_file, "r") as infile:
+        prompt = infile.read().strip()
+
+    generated_test = model.generate(
+        tokenizer,
+        prompt,
+        test_framework,
+        temperature=TEMPERATURE,
+        top_k=TOP_K,
+        max_seq_length=MAX_GEN_SEQ_LEN,
+        bos_token_id=BOS_TOKEN_ID,
+        eos_token_id=EOS_TOKEN_ID,
+        pad_token_id=PAD_TOKEN_ID,
+        device=DEVICE
+    )
+
+    if output_file is None:
+        print("Must specify an output file.")
+        return
+
+    with open(output_file, "w") as outfile:
+        outfile.write(f"# Generated Unit Test w/ {model.name} for {input_file} using {test_framework}:\n\n")
+        outfile.write(generated_test + "\n")
+
+    return generated_test
+
+def prompt_many_models(paths):
+    """
+    Prompts all the models specified in the arguments
+    :param paths:
+    :return:
+    """
+    # Load tokenizer (Same for all)
+    tokenizer = Tokenizer(TOKENIZER_PREFIX).load()
+
+    for p in paths:
+        # Need config?
+        # (
+        #     LEARNING_RATE,
+        #     EPOCHS,
+        #     BATCH_SIZE,
+        #     TEMPERATURE,
+        #     EARLY_EPOCH_STOP,
+        #     EPOCHS_PER_SAVE,
+        #     EMBED_DIM,
+        #     HIDDEN_DIM,
+        #     N_HEADS,
+        #     NUM_LAYERS,
+        #     DROPOUT
+        # ) = get_config(config_file)
+
+        model = TransformerEDLanguageModel(
+            # vocab_size=VOCAB_SIZE,
+            # embed_dim=EMBED_DIM,
+            # enc_num_layers=NUM_LAYERS,
+            # dec_num_layers=NUM_LAYERS,
+            # n_heads=N_HEADS,
+            # dropout=DROPOUT,
+            # pad_token_id=PAD_TOKEN_ID,
+            # seq_len=MAX_TRAIN_SEQ_LEN,
+            # name="Transformer Encoder-Decoder"
+        ).to(device)
+
+        model.load_state_dict(torch.load(p))
+
+        # Collect all relative file paths from MODEL_INPUT_DIR
+        for inp in os.listdir(MODEL_INPUT_DIR):
+            if os.path.isfile(inp):
+                input_file = os.path.join(inp, MODEL_INPUT_DIR)
+
+                # Prompt for each input
+                now = time.time()
+                # FIXME: GEt to this
+                fws = []
+                for fw in fws:
+                    prompt_model(model, tokenizer, framework, input_file, f"{MODEL_OUTPUT_DIR}/{fw}_for_{input_file}_at_{now.hex()}")
+
+# MAIN CODE
+
+# Collect paths for models from args
+
+# For each subdir in TrainingSaves/ we're going to look at the most recent epoch (alphabetically first, by luck) and append to paths
+paths = []
+if model == 'all':
+    for subdir in os.listdir(TRAINING_SAVE_DIR):
+        subdir_path = os.path.join(TRAINING_SAVE_DIR, subdir)
+        if os.path.isdir(subdir_path):
+            checkpoints = sorted(os.listdir(subdir_path))
+            if checkpoints:
+                latest_ckpt = checkpoints[0]  # alphabetically first because capitalized
+                full_ckpt_path = os.path.join(subdir_path, latest_ckpt)
+                rel_path = os.path.relpath(full_ckpt_path, TRAINING_SAVE_DIR)
+                paths.append(rel_path)
+    paths = sorted(paths)
+
+else:
+    paths.append(model)
+
+print(paths)
+
+# Prompt models and save output
+
+prompt_many_models(paths)
+
