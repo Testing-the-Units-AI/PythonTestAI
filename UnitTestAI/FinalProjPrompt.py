@@ -215,11 +215,15 @@ def prompt_many_models(paths, configs):
                 # Prompt for each input
                 now = time.time()
                 fws = []
+                if framework == 'unittest' or framework == 'both':
+                    fws.append('pytest')
+                if framework == 'pytest' or framework == 'both':
+                    fws.append('unittest')
+
                 for fw in fws:
                     out_file = f"{MODEL_OUTPUT_DIR}/{fw}_for_{input_file}_at_{now.hex()}"
-                    print(f"Would do prompt_model(\n{transformer_model}, \n{tokenizer}, \n{framework}, \n{input_file}, \n{out_file})")
-                    # FIXME: Uncomment me when figure out no bugs until now (run prog and you'll see what I mean)
-                    # prompt_model(model, tokenizer, framework, input_file, out_file)
+                    # print(f"Would do prompt_model(\n{transformer_model}, \n{tokenizer}, \n{fw}, \n{input_file}, \n{out_file})")
+                    prompt_model(transformer_model, model_config, tokenizer, fw, input_file, out_file)
 
 # MAIN CODE
 
