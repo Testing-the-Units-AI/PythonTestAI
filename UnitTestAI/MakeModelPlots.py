@@ -42,6 +42,7 @@ models = os.listdir(saves)
 
 for model in models:
 	model_name = model.decode()
+	print(f"Making model plot for {model_name}")
 	directory = os.fsencode(f"{TLD}/{model_name}")
 	files = os.listdir(directory)
 
