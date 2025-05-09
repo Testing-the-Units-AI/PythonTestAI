@@ -8,8 +8,8 @@ from typing import Literal, List
 
 from torch.nn.functional import dropout
 
-from FinalProjConstants import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, MAX_TRAIN_SEQ_LEN, MAX_GEN_SEQ_LEN, TOP_K, DEVICE, TRAINING_SAVE_DIR, \
-    device, TOKENIZER_PREFIX, VOCAB_SIZE, CONFIG_FILE, MAX_TRAIN_SEQ_LEN
+from FinalProjConstants import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, MAX_GEN_SEQ_LEN, TOP_K, DEVICE, TRAINING_SAVE_DIR, \
+    device, TOKENIZER_PREFIX, VOCAB_SIZE, CONFIG_FILE, MAX_TRAIN_SEQ_LEN, EMBED_DIM
 from FinalProjModels import TestFrameworkType, TransformerEDLanguageModel
 from FinalProjHelper import BOS_TOKEN_ID, EOS_TOKEN_ID, PAD_TOKEN_ID, Tokenizer
 
@@ -94,7 +94,7 @@ def parse_path(path):
 
         i += 2  # Move to next pair
 
-    if params["MAX_TRAIN_SEQ_LEN"] is None:
+    if "MAX_TRAIN_SEQ_LEN" not in params:
         params["MAX_TRAIN_SEQ_LEN"] = MAX_TRAIN_SEQ_LEN
 
     return params
@@ -175,37 +175,25 @@ def prompt_many_models(paths, configs):
 
     for p in paths:
         model_config = dissect_config(p, configs)
+        if model_config is None:
+            print(f"Skipping {model_name}. No config seems to exist for it.")
+            continue
+
         print(f"Trying to prompt model {os.path.relpath(p)}")
         # Config and construct model so we can use saved weights & biases
         # p has information about model config: dissect it so we can get right config using what we know
-        (
-            epochs,
-            batch_size,
-            temperature,
-            learning_rate,
-            layers,
-            dropout
-        ) = parse_path(p)
-
-        print("\n\n\n\n")
+        parsed_config = parse_path(p)
 
         model_name = f"Transformer {os.path.dirname(p)}"
         print(f"Loaded these hypers: ", parse_path(p))
 
-        print("\n\n\n\n")
-
-        # if model_config is None:
-        #     print(f"Skipping {model_name}. No config seems to exist for it.")
-        #     continue
-
-        tsl = model_config["MAX_TRAIN_SEQ_LEN"]
-        train_seq_len = 1024 if tsl is None else tsl
+        train_seq_len =  model_config["MAX_TRAIN_SEQ_LEN"] if "MAX_TRAIN_SEQ_LEN" in model_config else MAX_TRAIN_SEQ_LEN
 
         transformer_model = TransformerEDLanguageModel(
             vocab_size=VOCAB_SIZE,
-            embed_dim=128, # always same
-            enc_num_layers=layers, # layers same for both enc and dec
-            dec_num_layers=layers,
+            embed_dim=EMBED_DIM, # always same
+            enc_num_layers=parsed_config["NUM_LAYERS"], # layers same for both enc and dec
+            dec_num_layers=parsed_config["NUM_LAYERS"],
             # dropout=dropout, # irrelevant for prompting
             pad_token_id=PAD_TOKEN_ID, #
             # n_heads=8, # always same
