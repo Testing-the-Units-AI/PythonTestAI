@@ -6,12 +6,12 @@ import torch
 import os
 from typing import Literal, List
 
+from torch.nn.functional import dropout
+
 from FinalProjConstants import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, MAX_GEN_SEQ_LEN, TOP_K, DEVICE, TRAINING_SAVE_DIR, \
     device, TOKENIZER_PREFIX, VOCAB_SIZE, MAX_TRAIN_SEQ_LEN, CONFIG_FILE
 from FinalProjModels import TestFrameworkType, TransformerEDLanguageModel
 from FinalProjHelper import BOS_TOKEN_ID, EOS_TOKEN_ID, PAD_TOKEN_ID, Tokenizer
-
-print(f"TEST: print(device): {device}")
 
 # ARGUMENTS
 
@@ -207,16 +207,19 @@ def prompt_many_models(paths):
 
         transformer_model = TransformerEDLanguageModel(
             vocab_size=VOCAB_SIZE,
-            enc_num_layers=layers,
+            embed_dim=128, # always same
+            enc_num_layers=layers, # layers same for both enc and dec
             dec_num_layers=layers,
-            pad_token_id=PAD_TOKEN_ID,
-            seq_len=MAX_TRAIN_SEQ_LEN,
+            # dropout=dropout, # irrelevant for prompting
+            pad_token_id=PAD_TOKEN_ID, #
+            # n_heads=8, # always same
+            seq_len=1024, # not always same
             name=model_name
         ).to(device)
         print(f"Constructed model")
 
         state_dict: dict = torch.load(p)
-        print(state_dict.keys())
+        # print(state_dict.keys())
         transformer_model.load_state_dict(state_dict)
         print(f"Loaded state dict: {transformer_model.name}")
 
