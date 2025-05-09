@@ -183,16 +183,23 @@ def prompt_many_models(paths, configs):
     for p in paths:
         # Config and construct model so we can use saved weights & biases
         # p has information about model config: dissect it so we can get right config using what we know
-        model_config = dissect_config(p, configs)
+        (
+            epochs,
+            batch_size,
+            temperature,
+            learning_rate,
+            layers,
+            dropout
+        ) = parse_path(p)
         model_name = f"Transformer {os.path.dirname(p)}"
-        if model_config is None:
-            print(f"Skipping {model_name}. No config seems to exist for it.")
-            continue
+        # if model_config is None:
+        #     print(f"Skipping {model_name}. No config seems to exist for it.")
+        #     continue
 
         transformer_model = TransformerEDLanguageModel(
             vocab_size=VOCAB_SIZE,
-            enc_num_layers=model_config["NUM_LAYERS"],
-            dec_num_layers=model_config["NUM_LAYERS"],
+            enc_num_layers=layers,
+            dec_num_layers=layers,
             pad_token_id=PAD_TOKEN_ID,
             seq_len=MAX_TRAIN_SEQ_LEN,
             name=model_name
@@ -211,7 +218,7 @@ def prompt_many_models(paths, configs):
                 fws = []
                 for fw in fws:
                     out_file = f"{MODEL_OUTPUT_DIR}/{fw}_for_{input_file}_at_{now.hex()}"
-                    print(f"Would do prompt_model(\n{transformer_model}, \n{model_config}, \n{tokenizer}, \n{framework}, \n{input_file}, \n{out_file})")
+                    print(f"Would do prompt_model(\n{transformer_model}, \n{tokenizer}, \n{framework}, \n{input_file}, \n{out_file})")
                     # FIXME: Uncomment me when figure out no bugs until now (run prog and you'll see what I mean)
                     # prompt_model(model, tokenizer, framework, input_file, out_file)
 
@@ -238,4 +245,6 @@ else:
 
 print(model_paths)
 
-prompt_many_models(model_paths, get_configs(CONFIG_FILE))
+prompt_many_models(model_paths,
+                   # get_configs(CONFIG_FILE)
+                   [])
