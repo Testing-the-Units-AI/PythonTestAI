@@ -232,6 +232,16 @@ else:
 
 print(model_paths)
 
-# Prompt models and save output
-prompt_many_models(model_paths, get_configs(CONFIG_FILE))
+# FIXME: Undo comment: Prompt models and save output
+# prompt_many_models(model_paths, get_configs(CONFIG_FILE))
 
+configs = get_configs(CONFIG_FILE)
+
+p1 = "Epochs_3_Batch_Size_128_Temp_0.8_Learning_0.004_Layers_4_Dropout_0.2/TrainLoss_4.7667_TestLoss_5.7543_Perplexity_117.5363_BLEU_0.0001"
+p2 = TRAINING_SAVE_DIR + "/" + p1
+
+d1 = parse_path(p1)
+d2 = parse_path(p2)
+
+dict = dissect_config(p1, configs)
+print(dict)
