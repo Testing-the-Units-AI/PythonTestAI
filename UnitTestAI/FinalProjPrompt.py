@@ -212,6 +212,7 @@ def prompt_many_models(paths, configs):
                 for fw in fws:
                     out_file = f"{MODEL_OUTPUT_DIR}/{fw}_for_{input_file}_at_{now.hex()}"
                     print(f"Would do prompt_model(\n{transformer_model}, \n{model_config}, \n{tokenizer}, \n{framework}, \n{input_file}, \n{out_file})")
+                    # FIXME: Uncomment me when figure out no bugs until now (run prog and you'll see what I mean)
                     # prompt_model(model, tokenizer, framework, input_file, out_file)
 
 # MAIN CODE
