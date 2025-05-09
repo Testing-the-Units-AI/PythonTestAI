@@ -99,7 +99,7 @@ def parse_path(path):
 
     return params
 
-def dissect_config(path, configs: List[dict[str, str]]) -> dict[str, str] | None:
+def dissect_config(path, configs: List[dict[str, str]]) -> dict | None:
     """
 
     :param path: Path to model
@@ -115,7 +115,7 @@ def dissect_config(path, configs: List[dict[str, str]]) -> dict[str, str] | None
         # print("Checking against config:\n", json.dumps(c))
         if int(c["EPOCHS"]) == parsed_config["EPOCHS"] and int(c["BATCH_SIZE"]) == parsed_config["BATCH_SIZE"] and float(c["TEMPERATURE"]) == parsed_config["TEMPERATURE"] and float(c["LEARNING_RATE"]) == parsed_config["LEARNING_RATE"] and int(c["NUM_LAYERS"]) == parsed_config["NUM_LAYERS"] and float(c["DROPOUT"]) == parsed_config["DROPOUT"] and (parsed_config["MAX_TRAIN_SEQ_LEN"] and int(c["MAX_TRAIN_SEQ_LEN"]) == parsed_config["MAX_TRAIN_SEQ_LEN"]):
             config = c
-            print(f"Matched path: \"{path}\" to config: \"{config}\"")
+            # print(f"Matched path: \"{path}\" to config: \"{config}\"")
             break
 
     return config
@@ -143,7 +143,7 @@ def prompt_model(model, model_config, tokenizer, test_framework: TestFrameworkTy
         tokenizer,
         prompt,
         test_framework,
-        temperature=model_config['temperature'],
+        temperature=float(model_config["TEMPERATURE"]), # honestly, supposed to be float but it's receiving str
         top_k=TOP_K,
         max_seq_length=MAX_GEN_SEQ_LEN,
         bos_token_id=BOS_TOKEN_ID,
@@ -166,6 +166,7 @@ def prompt_many_models(paths, configs):
     """
     Prompts all the models specified in the arguments
     :param paths:
+    :param configs:
     :return:
     """
     # Load tokenizer (Same for all)
@@ -175,17 +176,15 @@ def prompt_many_models(paths, configs):
 
     for p in paths:
         model_config = dissect_config(p, configs)
+        model_name = f"Transformer_{p.split('/')[-1]}"
         if model_config is None:
             print(f"Skipping {model_name}. No config seems to exist for it.")
             continue
 
-        print(f"Trying to prompt model {os.path.relpath(p)}")
         # Config and construct model so we can use saved weights & biases
         # p has information about model config: dissect it so we can get right config using what we know
         parsed_config = parse_path(p)
-
-        model_name = f"Transformer {os.path.dirname(p)}"
-        print(f"Loaded these hypers: ", parse_path(p))
+        # print(f"Loaded these hypers: ", parse_path(p))
 
         train_seq_len =  model_config["MAX_TRAIN_SEQ_LEN"] if "MAX_TRAIN_SEQ_LEN" in model_config else MAX_TRAIN_SEQ_LEN
 
@@ -200,7 +199,7 @@ def prompt_many_models(paths, configs):
             seq_len=train_seq_len, # not always same
             name=model_name
         ).to(device)
-        print(f"Constructed model")
+        # print(f"Constructed model")
 
         state_dict: dict = torch.load(p)
         # print(state_dict.keys())
@@ -209,21 +208,20 @@ def prompt_many_models(paths, configs):
 
         # Collect all relative file paths from MODEL_INPUT_DIR
         for inp in os.listdir(MODEL_INPUT_DIR):
-            if os.path.isfile(inp):
-                input_file = os.path.join(inp, MODEL_INPUT_DIR)
+            input_file = os.path.join(MODEL_INPUT_DIR, inp)
 
-                # Prompt for each input
-                now = time.time()
-                fws = []
-                if framework == 'unittest' or framework == 'both':
-                    fws.append('pytest')
-                if framework == 'pytest' or framework == 'both':
-                    fws.append('unittest')
+            # Prompt for each input
+            now = time.time()
+            fws = []
+            if framework == 'unittest' or framework == 'both':
+                fws.append('pytest')
+            if framework == 'pytest' or framework == 'both':
+                fws.append('unittest')
 
-                for fw in fws:
-                    out_file = f"{MODEL_OUTPUT_DIR}/{fw}_for_{input_file}_at_{now.hex()}"
-                    # print(f"Would do prompt_model(\n{transformer_model}, \n{tokenizer}, \n{fw}, \n{input_file}, \n{out_file})")
-                    prompt_model(transformer_model, model_config, tokenizer, fw, input_file, out_file)
+            for fw in fws:
+                out_file = f"{MODEL_OUTPUT_DIR}/{fw}_for_{model_name}_at_{now}"
+                print(f"Will save to {out_file}")
+                prompt_model(transformer_model, model_config, tokenizer, fw, input_file, out_file)
 
 # MAIN CODE
 
@@ -246,7 +244,7 @@ if model_path == 'all':
 else:
     model_paths.append(model_path)
 
-print(model_paths)
-
-print("Model dir btw: ", os.listdir(MODEL_INPUT_DIR))
+# print(model_paths)
+#
+# print("Model dir btw: ", os.listdir(MODEL_INPUT_DIR))
 prompt_many_models(model_paths, get_configs(CONFIG_FILE))
