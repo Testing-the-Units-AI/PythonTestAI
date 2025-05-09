@@ -30,6 +30,7 @@ DROPOUT = .2
 N_HEADS = 8
 MAX_TRAIN_SEQ_LEN = 1024
 
+CONFIG_FILE = './config.json'
 TRAINING_SAVE_DIR = "./TrainingSaves"
 
 # Constants for model prompting
