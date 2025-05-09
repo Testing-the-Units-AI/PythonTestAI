@@ -71,7 +71,7 @@ def train_model(model, device, tokenizer, model_type=""):
     """
 
     save_directory_name_base = "./TrainingSaves/"
-    model_name =f"Epochs_{EPOCHS}_Batch_Size_{BATCH_SIZE}_Temp_{TEMPERATURE}_Learning_{LEARNING_RATE}_Layers_{NUM_LAYERS}_Dropout_{DROPOUT}_Max_Sequence_Length_{MAX_TRAIN_SEQ_LEN}"
+    model_name =f"Epochs_{EPOCHS}_Batch_{BATCH_SIZE}_Temp_{TEMPERATURE}_Learning_{LEARNING_RATE}_Layers_{NUM_LAYERS}_Dropout_{DROPOUT}_MaxSequenceLength_{MAX_TRAIN_SEQ_LEN}"
     try:
         os.mkdir(save_directory_name_base+model_name)
         print(f"Directory '{save_directory_name_base+model_name}' created successfully.")
