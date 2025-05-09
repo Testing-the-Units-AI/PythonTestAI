@@ -129,7 +129,7 @@ def train_model(model, device, tokenizer, model_type=""):
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer=optimizer, T_max=EPOCHS)
 
     # Adding on a decaying learning rate to the optimizer
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=1, factor=0.5)
+    # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=1, factor=0.5)
     criterion = nn.CrossEntropyLoss(ignore_index=PAD_TOKEN_ID)
 
     best_test_loss = float('inf')
@@ -210,7 +210,7 @@ def train_model(model, device, tokenizer, model_type=""):
 
             avg_test_loss = total_test_loss / len(test_loader)
             test_losses.append(avg_test_loss)
-            scheduler.step(avg_test_loss)
+            # scheduler.step(avg_test_loss)
 
             # If our testing data starts getting worse over time, we can stop it early to reduce losses in accuracy based on a preset constant
             if (avg_test_loss < best_test_loss):
