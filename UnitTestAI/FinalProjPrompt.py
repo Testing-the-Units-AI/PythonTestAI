@@ -53,14 +53,15 @@ def get_configs(config_file):
 
 def parse_path(path):
     """
-        Eg "Epochs_3_Batch_Size_128_Temp_0.8_Learning_0.004_Layers_4_Dropout_0.2/TrainLoss_4.7667_TestLoss_5.7543_Perplexity_117.5363_BLEU_0.0001"
+        Eg "./TrainingSaves/Epochs_3_Batch_Size_128_Temp_0.8_Learning_0.004_Layers_4_Dropout_0.2/TrainLoss_4.7667_TestLoss_5.7543_Perplexity_117.5363_BLEU_0.0001"
         epochs = 3, batch_size = 128, temperature = 0.8, learning_rate = 0.004, layers = 4, dropout = 0.2, and ignores stuff after "/"
 
     :param path: Path to model
     :return: Tuple of (epochs, batch_size, temperature, learning_rate, layers, dropout)
     """
     # Only care about the part before first slash
-    prefix = path.split("/")[0]
+    rel = os.path.relpath(path, TRAINING_SAVE_DIR)
+    prefix = rel.split("/")[0]
 
     # Split by underscores
     tokens = prefix.split("_")
@@ -119,7 +120,7 @@ def dissect_config(path, configs: List[dict[str, str]]) -> dict[str, str] | None
     config = None
     for c in configs:
         # print("Checking against config:\n", json.dumps(c))
-        if c["EPOCHS"] == epochs and c["BATCH_SIZE"] == batch_size and c["TEMPERATURE"] == temperature and c["LEARNING_RATE"] == learning_rate and c["LAYERS"] == layers and c["DROPOUT"] == dropout:
+        if int(c["EPOCHS"]) == epochs and int(c["BATCH_SIZE"]) == batch_size and float(c["TEMPERATURE"]) == temperature and float(c["LEARNING_RATE"]) == learning_rate and int(c["NUM_LAYERS"]) == layers and float(c["DROPOUT"]) == dropout:
             config = c
             break
 
@@ -186,8 +187,8 @@ def prompt_many_models(paths, configs):
 
         transformer_model = TransformerEDLanguageModel(
             vocab_size=VOCAB_SIZE,
-            enc_num_layers=model_config["num_layers"],
-            dec_num_layers=model_config["num_layers"],
+            enc_num_layers=model_config["NUM_LAYERS"],
+            dec_num_layers=model_config["NUM_LAYERS"],
             pad_token_id=PAD_TOKEN_ID,
             seq_len=MAX_TRAIN_SEQ_LEN,
             name=f"Transformer {os.path.dirname(p)}",
@@ -233,15 +234,4 @@ else:
 
 print(model_paths)
 
-# FIXME: Undo comment: Prompt models and save output
-# prompt_many_models(model_paths, get_configs(CONFIG_FILE))
-
-configs = get_configs(CONFIG_FILE)
-
-p1 = "Epochs_3_Batch_128_Temp_0.8_Learning_0.004_Layers_4_Dropout_0.2/TrainLoss_4.7667_TestLoss_5.7543_Perplexity_117.5363_BLEU_0.0001"
-p2 = TRAINING_SAVE_DIR + "/" + p1
-
-d1 = parse_path(p1)
-
-dict = dissect_config(p1, configs)
-print(dict)
+prompt_many_models(model_paths, get_configs(CONFIG_FILE))
