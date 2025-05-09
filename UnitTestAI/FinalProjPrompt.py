@@ -1,9 +1,10 @@
 import argparse
+import json
 import time
 
 import torch
 import os
-from typing import Literal
+from typing import Literal, List
 
 from FinalProjConstants import MODEL_INPUT_DIR, MODEL_OUTPUT_DIR, MAX_GEN_SEQ_LEN, TOP_K, DEVICE, TRAINING_SAVE_DIR, \
     device, TOKENIZER_PREFIX, VOCAB_SIZE, MAX_TRAIN_SEQ_LEN, CONFIG_FILE
@@ -38,38 +39,90 @@ print(f"  model_path          = {model_path}")
 
 # FUNCTIONS
 
-def get_config(config_file):
+def get_configs(config_file):
     """
-    Function responsible for getting config information
+    Function responsible for getting config information from file
     :param config_file:
     :return:
     """
+    with open(config_file, 'r') as file:
+        content = file.read().strip()
+        json_content = json.loads(content)
+        print(f"Loaded content from {CONFIG_FILE}")
+        return json_content
 
-    LEARNING_RATE = float(config_file["LEARNING_RATE"])
-    EPOCHS = config_file["EPOCHS"]
-    BATCH_SIZE = config_file["BATCH_SIZE"]
-    TEMPERATURE = float(config_file["TEMPERATURE"])
-    EARLY_EPOCH_STOP = config_file["EARLY_EPOCH_STOP"]
-    EPOCHS_PER_SAVE = config_file["EPOCHS_PER_SAVE"]
-    EMBED_DIM = config_file["EMBED_DIM"]
-    HIDDEN_DIM = config_file["HIDDEN_DIM"]
-    N_HEADS = config_file["N_HEADS"]
-    NUM_LAYERS = config_file["NUM_LAYERS"]
-    DROPOUT = float(config_file["DROPOUT"])
+def parse_path(path):
+    """
+        Eg "Epochs_3_Batch_Size_128_Temp_0.8_Learning_0.004_Layers_4_Dropout_0.2/TrainLoss_4.7667_TestLoss_5.7543_Perplexity_117.5363_BLEU_0.0001"
+        epochs = 3, batch_size = 128, temperature = 0.8, learning_rate = 0.004, layers = 4, dropout = 0.2, and ignores stuff after "/"
 
-    return {
-        "learning_rate": LEARNING_RATE,
-        "epochs": EPOCHS,
-        "batch_size": BATCH_SIZE,
-        "temperature": TEMPERATURE,
-        "early_epoch_stop": EARLY_EPOCH_STOP,
-        "epochs_per_save": EPOCHS_PER_SAVE,
-        "embed_dim": EMBED_DIM,
-        "hidden_dim": HIDDEN_DIM,
-        "n_heads": N_HEADS,
-        "num_layers": NUM_LAYERS,
-        "dropout": DROPOUT
-    }
+    :param path: Path to model
+    :return: Tuple of (epochs, batch_size, temperature, learning_rate, layers, dropout)
+    """
+    # Only care about the part before first slash
+    prefix = path.split("/")[0]
+
+    # Split by underscores
+    tokens = prefix.split("_")
+
+    # Dictionary to hold parsed values
+    params = {}
+
+    # Walk through tokens pairwise
+    i = 0
+    while i < len(tokens) - 1:
+        key = tokens[i].lower()
+        value = tokens[i+1]
+
+        if key == "epochs":
+            params["epochs"] = int(value)
+        elif key == "batch":
+            params["batch_size"] = int(value)
+        elif key == "temp":
+            params["temperature"] = float(value)
+        elif key == "learning":
+            params["learning_rate"] = float(value)
+        elif key == "layers":
+            params["layers"] = int(value)
+        elif key == "dropout":
+            params["dropout"] = float(value)
+
+        i += 2  # Move to next pair
+
+    return (
+        params["epochs"],
+        params["batch_size"],
+        params["temperature"],
+        params["learning_rate"],
+        params["layers"],
+        params["dropout"]
+    )
+
+def dissect_config(path, configs: List[dict[str, str]]) -> dict[str, str] | None:
+    """
+
+    :param path: Path to model
+    :param configs: Configs obtained from config file before prompting models
+    :return:
+    """
+    # parse path for info
+    (
+        epochs,
+        batch_size,
+        temperature,
+        learning_rate,
+        layers,
+        dropout
+    ) = parse_path(path)
+
+    # find right config from configs
+    config = None
+    for c in configs:
+        if c["EPOCHS"] == epochs and c["BATCH_SIZE"] == batch_size and c["TEMPERATURE"] == temperature and c["LEARNING_RATE"] == learning_rate and c["LAYERS"] == layers and c["DROPOUT"] == dropout:
+            config = c
+            break
+
+    return config
 
 def prompt_model(model, model_config, tokenizer, test_framework: TestFrameworkType, input_file, output_file):
     """
@@ -113,11 +166,11 @@ def prompt_model(model, model_config, tokenizer, test_framework: TestFrameworkTy
 
     return generated_test
 
-def prompt_many_models(paths, config_file):
+def prompt_many_models(paths, configs):
     """
     Prompts all the models specified in the arguments
     :param paths:
-    :param config_file:
+    :param configs:
     :return:
     """
     # Load tokenizer (Same for all)
@@ -127,7 +180,8 @@ def prompt_many_models(paths, config_file):
 
     for p in paths:
         # Config and construct model so we can use saved weights & biases
-        model_config = get_config(config_file)
+        # p has information about model config: dissect it so we can get right config using what we know
+        model_config = dissect_config(p, configs)
 
         transformer_model = TransformerEDLanguageModel(
             vocab_size=VOCAB_SIZE,
@@ -179,6 +233,5 @@ else:
 print(model_paths)
 
 # Prompt models and save output
-
-prompt_many_models(model_paths, CONFIG_FILE)
+prompt_many_models(model_paths, get_configs(CONFIG_FILE))
 
