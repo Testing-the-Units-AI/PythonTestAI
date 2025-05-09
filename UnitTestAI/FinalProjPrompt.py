@@ -180,9 +180,9 @@ if model_path == 'all':
         if os.path.isdir(subdir_path):
             checkpoints = sorted(os.listdir(subdir_path))
             if checkpoints:
-                latest_ckpt = checkpoints[0]  # alphabetically first because capitalized
+                latest_ckpt = checkpoints[0]  # alphabetically first
                 full_ckpt_path = os.path.join(subdir_path, latest_ckpt)
-                rel_path = os.path.relpath(full_ckpt_path, TRAINING_SAVE_DIR)
+                rel_path = os.path.relpath(full_ckpt_path, "./")  # needs to be relative './' otherwise screwed
                 model_paths.append(rel_path)
     model_paths = sorted(model_paths)
 
