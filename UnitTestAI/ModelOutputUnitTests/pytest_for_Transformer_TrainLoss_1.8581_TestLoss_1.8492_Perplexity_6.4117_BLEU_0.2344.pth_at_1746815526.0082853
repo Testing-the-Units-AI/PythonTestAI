@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.8581_TestLoss_1.8492_Perplexity_6.4117_BLEU_0.2344.pth for ./ModelInputCode/prompt2.py using pytest:
+
+<PYTEST> def test_get_user_by_id ( self ) : 
+     """Test get_user_id_name_id_id (

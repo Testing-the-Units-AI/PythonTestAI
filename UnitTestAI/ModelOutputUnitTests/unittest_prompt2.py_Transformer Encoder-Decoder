@@ -1,0 +1,4 @@
+# Generated Unit Test for ./ModelInputCode/prompt2.py using unittest:
+
+<UNITTEST> def test_create_resistance ( self ) : 
+     """Test the create_resistance_resite_resited

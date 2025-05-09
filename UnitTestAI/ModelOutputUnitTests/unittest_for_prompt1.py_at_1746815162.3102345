@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer TrainingSaves/Epochs_3_Batch_128_Temp_1.1_Learning_0.001_Layers_4_Dropout_0.2 for ./ModelInputCode/prompt1.py using unittest:
+
+<UNITTEST> def test__to__ ( self ) : 
+     self . assertEqual ( [ 'a_b' ] .___s_

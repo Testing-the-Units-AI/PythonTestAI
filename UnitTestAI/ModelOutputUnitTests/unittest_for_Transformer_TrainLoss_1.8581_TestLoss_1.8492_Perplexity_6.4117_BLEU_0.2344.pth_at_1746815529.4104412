@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.8581_TestLoss_1.8492_Perplexity_6.4117_BLEU_0.2344.pth for ./ModelInputCode/prompt5.py using unittest:
+
+<UNITTEST> def test_get_django_t_data ( self ) : 
+     """Tests that the djudjs

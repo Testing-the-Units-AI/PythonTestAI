@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.8581_TestLoss_1.8492_Perplexity_6.4117_BLEU_0.2344.pth for ./ModelInputCode/prompt2.py using unittest:
+
+<UNITTEST> def test_add_person_to_dict ( self ) : 
+     """Test add_person_per_to_dict (

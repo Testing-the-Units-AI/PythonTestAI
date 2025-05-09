@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer TrainingSaves/Epochs_12_Batch_128_Temp_0.9_Learning_0.002_Layers_4_Dropout_0.2 for ./ModelInputCode/test_input.py using unittest:
+
+<UNITTEST> def test_get_sprites_from_sp_sp_ ( self ) : 
+     s = Sp_L (

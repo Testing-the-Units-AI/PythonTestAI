@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.7092_TestLoss_1.7152_Perplexity_5.5243_BLEU_0.2249.pth for ./ModelInputCode/prompt2.py using pytest:
+
+<PYTEST> @ pytest . mark . parametrize ( 'input' , [ 'test' , 'Tests.test' , 'test' ] ) 
+ def test

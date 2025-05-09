@@ -1,0 +1,4 @@
+# Generated Unit Test for ./ModelInputCode/prompt6.py using unittest:
+
+<UNITTEST> def test_create_file_with ( self ) : 
+     """Tests the ``create_file.open_file_file_file

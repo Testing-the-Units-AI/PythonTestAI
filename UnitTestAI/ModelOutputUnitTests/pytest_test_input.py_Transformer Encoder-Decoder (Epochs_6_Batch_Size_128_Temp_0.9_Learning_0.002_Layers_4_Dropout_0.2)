@@ -1,0 +1,4 @@
+# Generated Unit Test using Transformer Encoder-Decoder (Epochs_6_Batch_Size_128_Temp_0.9_Learning_0.002_Layers_4_Dropout_0.2) for ./ModelInputCode/test_input.py using pytest:
+
+<PYTEST> def test_get_user_id_with_id_no_user_id ( ) : 
+     """ Test get_user_id

@@ -1,0 +1,4 @@
+# Generated Unit Test using Transformer Encoder-Decoder (Epochs_3_Batch_Size_128_Temp_0.9_Learning_0.002_Layers_4_Dropout_0.2) for ./ModelInputCode/prompt4.py using unittest:
+
+<UNITTEST> def test_get_user ( self ) : 
+     self . ( )  ( = self .  )     = ( .

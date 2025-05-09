@@ -1,0 +1,5 @@
+# Generated Unit Test for ./ModelInputCode/prompt3.py using unittest:
+
+<UNITTEST> @ patch ( 'os.path.path' ) 
+ @ patch ( 'os.path' ) 
+ def test_path_exists ( self

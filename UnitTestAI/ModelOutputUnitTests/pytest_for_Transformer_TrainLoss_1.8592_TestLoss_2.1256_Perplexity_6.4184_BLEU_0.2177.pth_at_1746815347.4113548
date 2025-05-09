@@ -1,0 +1,5 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.8592_TestLoss_2.1256_Perplexity_6.4184_BLEU_0.2177.pth for ./ModelInputCode/prompt6.py using pytest:
+
+<PYTEST> def test_parse__string ( ) : 
+     """Tests.-type, a string, in_type ( ) 
+     

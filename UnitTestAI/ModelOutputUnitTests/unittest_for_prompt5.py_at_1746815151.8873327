@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer TrainingSaves/Epochs_12_Batch_128_Temp_0.9_Learning_0.002_Layers_4_Dropout_0.2 for ./ModelInputCode/prompt5.py using unittest:
+
+<UNITTEST> def test_parse_date_s_with_date_with_s_none ( self ) : 
+     with self . assertRaises ( ValueError

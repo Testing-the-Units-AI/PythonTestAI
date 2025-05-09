@@ -1,0 +1,5 @@
+# Generated Unit Test for ./ModelInputCode/prompt5.py using unittest:
+
+<UNITTEST> def testFunctionLengthCheckDefinition_int ( self ) : 
+     self . TestFunctionLengthCheckBelow ( 1 ) 
+ 

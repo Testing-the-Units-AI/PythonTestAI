@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.7092_TestLoss_1.7152_Perplexity_5.5243_BLEU_0.2249.pth for ./ModelInputCode/prompt5.py using pytest:
+
+<PYTEST> def test_get_data_data_data ( ) : 
+     """ Test that a the get the correctly_data_ data. """

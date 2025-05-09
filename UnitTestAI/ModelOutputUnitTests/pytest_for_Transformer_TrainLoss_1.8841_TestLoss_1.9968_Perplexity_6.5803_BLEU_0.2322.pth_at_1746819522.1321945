@@ -1,0 +1,3 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.8841_TestLoss_1.9968_Perplexity_6.5803_BLEU_0.2322.pth for ./ModelInputCode/prompt3.py using pytest:
+
+<PYTEST> @ pytest . mark . parametrize ( 'test_input_, expected' , [ ( '' , 'a' ) , ( 'b' ) ,

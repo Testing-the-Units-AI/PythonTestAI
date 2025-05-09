@@ -1,0 +1,5 @@
+# Generated Unit Test w/ Transformer TrainingSaves/Epochs_3_Batch_128_Temp_0.9_Learning_0.002_Layers_4_Dropout_0.2 for ./ModelInputCode/prompt4.py using pytest:
+
+<PYTEST> def test_get_s_s ( ) : 
+     """Tests the function_s function.s (s_s ) 
+

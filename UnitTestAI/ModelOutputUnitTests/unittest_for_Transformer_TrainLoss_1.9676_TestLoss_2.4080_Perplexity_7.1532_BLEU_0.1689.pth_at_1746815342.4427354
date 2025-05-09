@@ -1,0 +1,5 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.9676_TestLoss_2.4080_Perplexity_7.1532_BLEU_0.1689.pth for ./ModelInputCode/prompt6.py using unittest:
+
+<UNITTEST> def test_add ( self ) : 
+     for_s (_s ) : 
+         self ._ . ( )  

@@ -1,0 +1,4 @@
+# Generated Unit Test for ./ModelInputCode/prompt4.py using unittest:
+
+<UNITTEST> def test_get_dj_s ( self ) : 
+     self . assertEqual ( get_dj ( 'a' , 'b

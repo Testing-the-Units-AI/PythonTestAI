@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer TrainingSaves/Epochs_12_Batch_128_Temp_0.9_Learning_0.002_Layers_4_Dropout_0.2 for ./ModelInputCode/prompt2.py using pytest:
+
+<PYTEST> def test_get_sp_by_name ( self ) : 
+     assert self . _get_sp_by_name (

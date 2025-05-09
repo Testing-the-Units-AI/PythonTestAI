@@ -1,0 +1,3 @@
+# Generated Unit Test for ./ModelInputCode/prompt5.py using pytest:
+
+<PYTEST> @ pytest . mark . parametrize ( 'value,expected_value' , [ ( 'a_value' , 'b' , 'a' ) ,

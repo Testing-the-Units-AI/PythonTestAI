@@ -1,0 +1,4 @@
+# Generated Unit Test for ./ModelInputCode/test_input.py using pytest:
+
+<PYTEST> def test_get_dummix_with_name ( self ) : 
+     s = Series ( [ 'a|b' ,

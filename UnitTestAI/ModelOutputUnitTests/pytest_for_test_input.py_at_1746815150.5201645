@@ -1,0 +1,3 @@
+# Generated Unit Test w/ Transformer TrainingSaves/Epochs_12_Batch_128_Temp_0.9_Learning_0.002_Layers_4_Dropout_0.2 for ./ModelInputCode/test_input.py using pytest:
+
+<PYTEST> def test_get_data_data_from_data_file_with_s_file ( self , test_file , test_dir , test

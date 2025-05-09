@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.8592_TestLoss_2.1256_Perplexity_6.4184_BLEU_0.2177.pth for ./ModelInputCode/prompt4.py using unittest:
+
+<UNITTEST> def test___type_key_type_key ( self ) : 
+     self ._test_ ( '_key' ) 

@@ -1,0 +1,5 @@
+# Generated Unit Test using Transformer Encoder-Decoder (Epochs_3_Batch_Size_128_Temp_1.1_Learning_0.001_Layers_4_Dropout_0.2) for ./ModelInputCode/prompt6.py using pytest:
+
+<PYTEST> def test_parse_type_type_type ( ) : 
+     assert parse_ ( '_type' , '
+     -type_type

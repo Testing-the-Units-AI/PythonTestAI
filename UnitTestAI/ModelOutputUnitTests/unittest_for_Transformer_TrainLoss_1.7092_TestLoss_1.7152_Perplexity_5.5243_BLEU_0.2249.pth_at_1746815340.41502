@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.7092_TestLoss_1.7152_Perplexity_5.5243_BLEU_0.2249.pth for ./ModelInputCode/prompt5.py using unittest:
+
+<UNITTEST> def test_parse_hotkey_com_list_single_sp_sprite ( self ) : 
+     self . assertEqual

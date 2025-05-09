@@ -1,0 +1,5 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.8841_TestLoss_1.9968_Perplexity_6.5803_BLEU_0.2322.pth for ./ModelInputCode/test_input.py using pytest:
+
+<PYTEST> def test_get_all_s ( ) : 
+     """Test get_all_s ( ( ) 
+     assert not in_s

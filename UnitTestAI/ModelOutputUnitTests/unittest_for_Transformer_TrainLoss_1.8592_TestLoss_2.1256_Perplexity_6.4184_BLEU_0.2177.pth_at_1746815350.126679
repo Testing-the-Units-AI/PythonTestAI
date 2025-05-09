@@ -1,0 +1,5 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.8592_TestLoss_2.1256_Perplexity_6.4184_BLEU_0.2177.pth for ./ModelInputCode/test_input.py using unittest:
+
+<UNITTEST> def test_ison_in ( self ) : 
+     self . assertTrue ( [ 0 , 0 ] ) 
+ 

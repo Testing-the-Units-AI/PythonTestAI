@@ -1,0 +1,4 @@
+# Generated Unit Test w/ Transformer_TrainLoss_1.8841_TestLoss_1.9968_Perplexity_6.5803_BLEU_0.2322.pth for ./ModelInputCode/prompt4.py using unittest:
+
+<UNITTEST> def test_get_all_list_list ( self ) : 
+     """ test get_all_all_list_all_list()

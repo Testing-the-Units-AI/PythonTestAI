@@ -1,0 +1,4 @@
+# Generated Unit Test for ./ModelInputCode/prompt3.py using pytest:
+
+<PYTEST> def test_get_s_by_id_type ( ) : 
+     """ Tests the get_s_id_name() method
